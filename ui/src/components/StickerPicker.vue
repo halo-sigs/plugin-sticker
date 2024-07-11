@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 export default {
   emits: ["close"],
   methods: {
@@ -8,54 +8,54 @@ export default {
   },
 };
 </script>
-<script setup>
+<script lang="ts" setup>
 import { VCard, VLoading, VTabbar } from "@halo-dev/components";
 import { ref } from "vue";
+import { useQuery } from "@tanstack/vue-query";
 import LazyImage from "@/components/LazyImage.vue";
+import { axiosInstance } from "@halo-dev/api-client";
+import type { Sticker } from "@/types";
+
+const { data: stickerList } = useQuery<Sticker>({
+  queryKey: [],
+  queryFn: async () => {
+    const { data } = await axiosInstance.get<Sticker>("/apis/storage.halo.run/v1alpha1/stickers");
+    return data.items
+      .map((group) => {
+        if (group.spec) {
+          group.status.isDelete = 0;
+        }
+        return group;
+      })
+      .sort((a, b) => {
+        return (a.spec?.sequence || 0) - (b.spec?.sequence || 0);
+      });
+  },
+});
 
 const stickerGroup = ref([
-  { id: 1, label: "group1" },
-  { id: 2, label: "group2" },
-  { id: 3, label: "group3" },
-]);
-const stickers = ref([
   {
-    id: 1,
-    spec: {
-      displayName: "sticker1",
-      url: "https://cdn.airbozh.cn/blog/OIG.jpg",
-    },
-    metadata: { name: "sticker1" },
+    id: "all",
+    label: "全部",
   },
   {
-    id: 2,
-    spec: {
-      displayName: "sticker2",
-      url: "https://cdn.airbozh.cn/blog/OIG.jpg",
-    },
-    metadata: { name: "sticker2" },
+    id: "emoji",
+    label: "表情",
   },
   {
-    id: 3,
-    spec: {
-      displayName: "sticker3",
-      url: "https://cdn.airbozh.cn/blog/OIG.jpg",
-    },
-    metadata: { name: "sticker3" },
+    id: "dynamic",
+    label: "动态",
   },
 ]);
+const stickers = ref(stickerList);
 const activeId = ref(stickerGroup.value[0].id);
 </script>
 
 <template>
   <div class="sticker-picker h-[500px] w-[540px] bg-white shadow-xl">
     <VCard>
-      <div class="grid grid-cols-5">
-        <div
-          v-for="sticker in stickers"
-          :key="sticker.id"
-          class="mx-3 flex items-center justify-center"
-        >
+      <div class="grid grid-cols-6">
+        <div v-for="sticker in stickers" :key="sticker.id" class="mx-3 flex items-center justify-center">
           <div class="group relative bg-white">
             <div class="cursor-pointer overflow-hidden bg-gray-100">
               <LazyImage
@@ -70,9 +70,7 @@ const activeId = ref(stickerGroup.value[0].id);
                   </div>
                 </template>
                 <template #error>
-                  <div
-                    class="h-full flex items-center justify-center object-cover"
-                  >
+                  <div class="h-full flex items-center justify-center object-cover">
                     <span class="text-xs text-red-400"> 加载异常 </span>
                   </div>
                 </template>

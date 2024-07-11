@@ -2,6 +2,7 @@ import { EditorView, Plugin, PluginKey } from "@halo-dev/richtext-editor";
 import tippy, { type Instance as TippyInstance } from "tippy.js";
 import StickerPicker from "@/components/StickerPicker.vue";
 import { createApp, h } from "vue";
+import {VueQueryPlugin} from "@tanstack/vue-query";
 
 export const StickerPluginKey = new PluginKey("sticker");
 
@@ -23,6 +24,7 @@ const createTooltip = (editorView: EditorView) => {
   });
 
   const div = document.createElement("div");
+  app.use(VueQueryPlugin);
   app.mount(div);
 
   tooltip = tippy(editorView.dom, {
