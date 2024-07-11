@@ -20,3 +20,5 @@ spec:
   license:
     - name: "GPL-3.0"
       url: "https://github.com/halo-sigs/plugin-sticker/blob/main/LICENSE"
+  configMapName: setting-sticker-configmap
+  settingName: setting-sticker

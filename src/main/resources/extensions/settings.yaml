@@ -1,0 +1,14 @@
+apiVersion: v1alpha1
+kind: Setting
+metadata:
+  name: setting-sticker
+spec:
+  forms:
+    - group: attachment
+      label: 附件设置
+      formSchema:
+        - $formkit: attachmentPolicySelect
+          name: attachmentPolicyName
+          label: "储存策略"
+          value: "default-policy"
+          help: 用于指定在表情表中上传的存储策略
