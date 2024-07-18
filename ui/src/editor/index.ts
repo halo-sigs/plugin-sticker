@@ -1,67 +1,164 @@
 import {
-  type Editor, EditorState, ExtensionLink, getNodeAttributes, isActive, mergeAttributes, Node
+  Editor,
+  ToolboxItem,
+  ToolbarItem,
+  mergeAttributes,
+  Node, PluginKey,
 } from "@halo-dev/richtext-editor";
-import {markRaw} from "vue";
-import StickerPicker from "@/components/StickerPicker.vue";
-import {IconMotionLine} from "@halo-dev/components";
+import { IconMotionLine } from "@halo-dev/components";
+import {
+  type Component, type FunctionalComponent,
+  markRaw,
+  type SVGAttributes,
+} from "vue";
+import Suggestion, {type SuggestionOptions, type SuggestionProps} from "@tiptap/suggestion";
+import {stickerSuggestion} from "@/plugin";
 
-export interface StickerOptions {
-  inline: boolean,
-  HTMLAttributes: Record<string, any>,
+// 工具栏
+export interface ToolbarItem {
+  priority: number;
+  component: Component;
+  props: {
+    editor: Editor;
+    isActive: boolean;
+    disabled?: boolean;
+    icon?: Component;
+    title?: string;
+    action?: () => void;
+  };
+  children?: ToolbarItem[];
+}
+
+export interface ToolboxItem {
+  priority: number;
+  component: Component;
+  props: {
+    editor: Editor;
+    icon?: Component;
+    title?: string;
+    description?: string;
+    action?: () => void;
+  };
+}
+
+export interface CommandMenuItem {
+  priority: number;
+  icon: FunctionalComponent<SVGAttributes>;
+  title: string;
+  keywords: string[];
+  command: () => void;
+}
+
+export interface StickerAttrs {
+  /**
+   * The identifier for the selected item that was mentioned, stored as a `data-id`
+   * attribute.
+   */
+  id: string | null;
+  /**
+   * The label to be rendered by the editor as the displayed text for this mentioned
+   * item, if provided. Stored as a `data-label` attribute. See `renderLabel`.
+   */
+  label?: string | null;
+}
+
+export interface StickerOptions<
+  SuggestionItem = any,
+  Attrs extends Record<string, any> = StickerAttrs,
+> {
+  inline: boolean;
+  HTMLAttributes: Record<string, any>;
+  getToolbarItems: ({ editor }: { editor: Editor }) => ToolbarItem;
+  getToolboxItems: ({ editor }: { editor: Editor }) => ToolboxItem;
+  getCommandMenuItems: () => CommandMenuItem;
+  suggestion: Omit<SuggestionOptions<SuggestionItem, Attrs>, "editor">;
 }
 
 const StickerExtension = Node.create<StickerOptions>({
-  name: "Sticker",
+  name: "sticker",
 
   atom: true,
-  
+
   draggable: true,
-  
+
   group() {
-    return this.options.inline ? 'inline' : 'block'
+    return this.options.inline ? "inline" : "block";
   },
 
   addAttributes() {
-    return {}
+    return {};
   },
 
-  addOptions() {
+  addOptions(): any {
     return {
       ...this.parent?.(),
-      inline: false,
-      HTMLAttributes: {},
-      getBubbleMenu() {
-        return{
-          pluginKey: 'sticker-picker',
-          shouldShow: ({ state }: { state: EditorState }) => {
-            return isActive(state, StickerExtension.name);
+      getToolbarItems({ editor }: { editor: Editor }) {
+        return {
+          priority: 120,
+          component: markRaw(ToolbarItem),
+          props: {
+            editor,
+            icon: markRaw(IconMotionLine),
+            title: "表情包",
+            action: () => {
+              console.log("tool bar click");
+            },
           },
-          defaultAnimation: false,
-          items: [
-            {
-              priority: 10,
-              component: markRaw(IconMotionLine),
-              props: {
-                name: StickerExtension.name,
-              },
-            }
-          ]
-        }
-      }
-    }
+        };
+      },
+      getToolboxItems({ editor }: { editor: Editor }) {
+        return {
+          priority: 120,
+          component: markRaw(ToolboxItem),
+          props: {
+            editor,
+            icon: markRaw(IconMotionLine),
+            title: "表情包",
+            action: () => {
+              console.log("tool bar click");
+            },
+          },
+        };
+      },
+      getCommandMenuItems() {
+        return {
+          priority: 120,
+          icon: markRaw(IconMotionLine),
+          title: "表情包",
+          keywords: ["emoji", "sticker"],
+          command: () => {
+            console.log("editor command");
+          },
+        };
+      },
+      suggestion: stickerSuggestion
+    };
   },
 
   inline() {
-    return this.options.inline
+    return this.options.inline;
   },
 
   parseHTML() {
-    return [{tag: "sticker"}];
+    return [{ tag: "sticker" }];
   },
 
-  renderHTML({HTMLAttributes}) {
-    return ["sticker", mergeAttributes(this.options.HTMLAttributes, HTMLAttributes), ["img"]];
+  renderHTML({ HTMLAttributes }) {
+    return [
+      "sticker",
+      mergeAttributes(this.options.HTMLAttributes, HTMLAttributes),
+      ["img"],
+    ];
   },
-})
 
-export {StickerExtension}
+  addProseMirrorPlugins() {
+    return [
+      Suggestion({
+        editor: this.editor,
+        ...this.options.suggestion,
+      }),
+    ];
+  },
+});
+
+export { StickerExtension };

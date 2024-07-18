@@ -1,8 +1,8 @@
-import {definePlugin} from "@halo-dev/console-shared";
+import { definePlugin } from "@halo-dev/console-shared";
 import HomeView from "./views/HomeView.vue";
-import {markRaw} from "vue";
-import {IconMotionLine} from "@halo-dev/components";
-import {StickerExtension} from "@/editor";
+import { markRaw } from "vue";
+import { IconMotionLine } from "@halo-dev/components";
+import { StickerExtension } from "@/editor";
 
 export default definePlugin({
   components: {},
