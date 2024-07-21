@@ -5,14 +5,13 @@ import {
   mergeAttributes,
   Node, PluginKey,
 } from "@halo-dev/richtext-editor";
-import { IconMotionLine } from "@halo-dev/components";
+import {IconMotionLine} from "@halo-dev/components";
 import {
   type Component, type FunctionalComponent,
   markRaw,
   type SVGAttributes,
 } from "vue";
-import Suggestion, {type SuggestionOptions, type SuggestionProps} from "@tiptap/suggestion";
-import {stickerSuggestion} from "@/plugin";
+import {StickerPmPlugin} from "@/plugin";
 
 // 工具栏
 export interface ToolbarItem {
@@ -62,16 +61,12 @@ export interface StickerAttrs {
   label?: string | null;
 }
 
-export interface StickerOptions<
-  SuggestionItem = any,
-  Attrs extends Record<string, any> = StickerAttrs,
-> {
+export interface StickerOptions {
   inline: boolean;
   HTMLAttributes: Record<string, any>;
-  getToolbarItems: ({ editor }: { editor: Editor }) => ToolbarItem;
-  getToolboxItems: ({ editor }: { editor: Editor }) => ToolboxItem;
+  getToolbarItems: ({editor}: { editor: Editor }) => ToolbarItem;
+  getToolboxItems: ({editor}: { editor: Editor }) => ToolboxItem;
   getCommandMenuItems: () => CommandMenuItem;
-  suggestion: Omit<SuggestionOptions<SuggestionItem, Attrs>, "editor">;
 }
 
 const StickerExtension = Node.create<StickerOptions>({
@@ -92,7 +87,7 @@ const StickerExtension = Node.create<StickerOptions>({
   addOptions(): any {
     return {
       ...this.parent?.(),
-      getToolbarItems({ editor }: { editor: Editor }) {
+      getToolbarItems({editor}: { editor: Editor }) {
         return {
           priority: 120,
           component: markRaw(ToolbarItem),
@@ -106,7 +101,7 @@ const StickerExtension = Node.create<StickerOptions>({
           },
         };
       },
-      getToolboxItems({ editor }: { editor: Editor }) {
+      getToolboxItems({editor}: { editor: Editor }) {
         return {
           priority: 120,
           component: markRaw(ToolboxItem),
@@ -131,7 +126,6 @@ const StickerExtension = Node.create<StickerOptions>({
           },
         };
       },
-      suggestion: stickerSuggestion
     };
   },
 
@@ -140,10 +134,10 @@ const StickerExtension = Node.create<StickerOptions>({
   },
 
   parseHTML() {
-    return [{ tag: "sticker" }];
+    return [{tag: "sticker"}];
   },
 
-  renderHTML({ HTMLAttributes }) {
+  renderHTML({HTMLAttributes}) {
     return [
       "sticker",
       mergeAttributes(this.options.HTMLAttributes, HTMLAttributes),
@@ -152,13 +146,8 @@ const StickerExtension = Node.create<StickerOptions>({
   },
 
   addProseMirrorPlugins() {
-    return [
-      Suggestion({
-        editor: this.editor,
-        ...this.options.suggestion,
-      }),
-    ];
+    return [StickerPmPlugin];
   },
 });
 
-export { StickerExtension };
+export {StickerExtension};
