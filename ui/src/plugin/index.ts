@@ -1,14 +1,74 @@
 import {EditorView, Plugin, PluginKey} from "@halo-dev/richtext-editor";
-import tippy, {type Instance, type Props} from "tippy.js";
+import tippy, {type Instance as TippyInstance} from "tippy.js";
 
-export const StickerPluginKey = new PluginKey('sticker')
-
+export const StickerPluginKey = new PluginKey('sticker');
 
 class PluginState {
-
+  // TODO 内部状态
 }
 
-const Sticker = new Plugin<PluginState>({
+let tooltip: TippyInstance | null = null;
+
+const createTooltip = (editorView: EditorView) => {
+  tooltip = tippy(editorView.dom, {
+    content: createTooltipContent(),
+    trigger: 'manual',
+    interactive: true, // 允许用户与内容互动
+    placement: 'bottom-start', // 对话框位置
+    hideOnClick: false, // 点击内容不会隐藏
+  });
+};
+
+const createTooltipContent = () => {
+  const content = document.createElement('div');
+  content.style.width = '100%';
+  content.style.height = '100%';
+  content.style.background = 'rgba(0, 0, 0, 0.5)'; // 半透明背景
+  content.style.display = 'flex';
+  content.style.alignItems = 'center';
+  content.style.justifyContent = 'center';
+  content.style.position = 'fixed';
+  content.style.top = '0';
+  content.style.left = '0';
+  content.style.zIndex = '9999';
+
+  const innerContent = document.createElement('div');
+  innerContent.style.padding = '20px';
+  innerContent.style.background = 'white';
+  innerContent.style.border = '1px solid #ddd';
+  innerContent.style.borderRadius = '4px';
+  innerContent.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.1)';
+  innerContent.innerHTML = `
+    <div>
+      <h4>这是一个对话框</h4>
+      <p>这里是对话框的内容。</p>
+      <button id="close-tooltip">关闭</button>
+    </div>
+  `;
+
+  content.appendChild(innerContent);
+
+  // 添加关闭按钮事件
+  content.querySelector('#close-tooltip')?.addEventListener('click', () => {
+    tooltip?.hide();
+  });
+
+  return content;
+};
+
+export const showStickerTooltip = () => {
+  if (tooltip) {
+    tooltip.show();
+  }
+};
+
+export const hideStickerTooltip = () => {
+  if (tooltip) {
+    tooltip.hide();
+  }
+};
+
+const StickerPmPlugin = new Plugin<PluginState>({
   key: StickerPluginKey,
 
   props: {},
@@ -16,64 +76,30 @@ const Sticker = new Plugin<PluginState>({
   state: {
     // Initialize the plugin's internal state.
     init() {
-      const state: {} = {}
-
-      return state
+      return new PluginState();
     },
 
     // Apply changes to the plugin state from a view transaction.
-    apply() {
-      return 1;
+    apply(tr, value, oldState, newState) {
+      return value;
     },
   },
 
   view(editorView) {
-    let tooltip: Instance<Props> | null = null;
-
-    const createTooltip = () => {
-      tooltip = tippy(editorView.dom, {
-        content: "这是一个悬浮窗",
-        trigger: "manual",
-      });
-    };
-
-    const showTooltip = (pos: number) => {
-      const {from, to} = editorView.state.selection;
-      const start = editorView.coordsAtPos(from);
-      const end = editorView.coordsAtPos(to);
-      const box = {
-        left: Math.min(start.left, end.left),
-        right: Math.max(start.right, end.right),
-        top: Math.min(start.top, end.top),
-        bottom: Math.max(start.bottom, end.bottom),
-      };
-      tooltip?.setProps({
-        getReferenceClientRect: () => new DOMRect(box.left, box.top, box.right - box.left, box.bottom - box.top),
-      });
-      tooltip?.show();
-    };
+    if (!tooltip) {
+      createTooltip(editorView);
+    }
 
     return {
       update(view, prevState) {
-        const {from, to} = view.state.selection;
-        if (!tooltip) {
-          createTooltip();
-        }
-        if (from !== to) {
-          showTooltip(view.state.selection.from);
-        } else {
-          tooltip?.hide();
-        }
+        // TODO 更新逻辑
       },
       destroy() {
-        if (tooltip) {
-          tooltip.destroy();
-          tooltip = null;
-        }
+        tooltip?.destroy();
+        tooltip = null;
       },
     };
   },
+});
 
-})
-
-export {Sticker as StickerPmPlugin}
+export {StickerPmPlugin};

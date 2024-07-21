@@ -1,19 +1,15 @@
 import {
   Editor,
+  Node,
   ToolboxItem,
   ToolbarItem,
   mergeAttributes,
-  Node, PluginKey,
 } from "@halo-dev/richtext-editor";
 import {IconMotionLine} from "@halo-dev/components";
-import {
-  type Component, type FunctionalComponent,
-  markRaw,
-  type SVGAttributes,
-} from "vue";
-import {StickerPmPlugin} from "@/plugin";
+import {type Component, type FunctionalComponent, markRaw, type SVGAttributes} from "vue";
+import {StickerPmPlugin, showStickerTooltip, hideStickerTooltip} from "@/plugin";
 
-// 工具栏
+// 工具栏接口定义
 export interface ToolbarItem {
   priority: number;
   component: Component;
@@ -48,19 +44,6 @@ export interface CommandMenuItem {
   command: () => void;
 }
 
-export interface StickerAttrs {
-  /**
-   * The identifier for the selected item that was mentioned, stored as a `data-id`
-   * attribute.
-   */
-  id: string | null;
-  /**
-   * The label to be rendered by the editor as the displayed text for this mentioned
-   * item, if provided. Stored as a `data-label` attribute. See `renderLabel`.
-   */
-  label?: string | null;
-}
-
 export interface StickerOptions {
   inline: boolean;
   HTMLAttributes: Record<string, any>;
@@ -86,7 +69,8 @@ const StickerExtension = Node.create<StickerOptions>({
 
   addOptions(): any {
     return {
-      ...this.parent?.(),
+      inline: false,
+      HTMLAttributes: {},
       getToolbarItems({editor}: { editor: Editor }) {
         return {
           priority: 120,
@@ -96,7 +80,7 @@ const StickerExtension = Node.create<StickerOptions>({
             icon: markRaw(IconMotionLine),
             title: "表情包",
             action: () => {
-              console.log("tool bar click");
+              showStickerTooltip();
             },
           },
         };
@@ -110,7 +94,7 @@ const StickerExtension = Node.create<StickerOptions>({
             icon: markRaw(IconMotionLine),
             title: "表情包",
             action: () => {
-              console.log("tool bar click");
+              showStickerTooltip();
             },
           },
         };
@@ -122,7 +106,7 @@ const StickerExtension = Node.create<StickerOptions>({
           title: "表情包",
           keywords: ["emoji", "sticker"],
           command: () => {
-            console.log("editor command");
+            showStickerTooltip();
           },
         };
       },
