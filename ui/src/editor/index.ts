@@ -1,13 +1,7 @@
-import {
-  Editor,
-  Node,
-  ToolboxItem,
-  ToolbarItem,
-  mergeAttributes,
-} from "@halo-dev/richtext-editor";
+import {Editor, mergeAttributes, Node, ToolbarItem, ToolboxItem,} from "@halo-dev/richtext-editor";
 import {IconMotionLine} from "@halo-dev/components";
 import {type Component, type FunctionalComponent, markRaw, type SVGAttributes} from "vue";
-import {StickerPmPlugin, showStickerTooltip, hideStickerTooltip} from "@/plugin";
+import {StickerPluginKey, StickerPmPlugin} from "@/plugin";
 
 // 工具栏接口定义
 export interface ToolbarItem {
@@ -41,7 +35,7 @@ export interface CommandMenuItem {
   icon: FunctionalComponent<SVGAttributes>;
   title: string;
   keywords: string[];
-  command: () => void;
+  command: ({ editor, range }: { editor: Editor; range: Range }) => void;
 }
 
 export interface StickerOptions {
@@ -50,6 +44,13 @@ export interface StickerOptions {
   getToolbarItems: ({editor}: { editor: Editor }) => ToolbarItem;
   getToolboxItems: ({editor}: { editor: Editor }) => ToolboxItem;
   getCommandMenuItems: () => CommandMenuItem;
+}
+
+
+const openStickerPicker = (editor: Editor) => {
+  //@ts-ignore
+  editor.commands.openStickerPicker(editor.state.tr)
+
 }
 
 const StickerExtension = Node.create<StickerOptions>({
@@ -80,7 +81,7 @@ const StickerExtension = Node.create<StickerOptions>({
             icon: markRaw(IconMotionLine),
             title: "表情包",
             action: () => {
-              showStickerTooltip();
+              openStickerPicker(editor)
             },
           },
         };
@@ -94,7 +95,7 @@ const StickerExtension = Node.create<StickerOptions>({
             icon: markRaw(IconMotionLine),
             title: "表情包",
             action: () => {
-              showStickerTooltip();
+              openStickerPicker(editor)
             },
           },
         };
@@ -105,14 +106,27 @@ const StickerExtension = Node.create<StickerOptions>({
           icon: markRaw(IconMotionLine),
           title: "表情包",
           keywords: ["emoji", "sticker"],
-          command: () => {
-            showStickerTooltip();
+          command: ({ editor, range }: { editor: Editor; range: Range }) => {
+            openStickerPicker(editor)
           },
         };
       },
     };
   },
-
+  //@ts-ignore
+  addCommands() {
+    return {
+      openStickerPicker: () => 
+        ({tr}: any) => {
+          tr.setMeta(StickerPluginKey, {visible: true})
+        return  1
+      },
+      testFn: () =>
+        ()=>{
+        return 1
+        }
+    }
+  },
   inline() {
     return this.options.inline;
   },
