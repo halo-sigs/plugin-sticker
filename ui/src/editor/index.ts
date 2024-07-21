@@ -1,7 +1,18 @@
-import {Editor, mergeAttributes, Node, ToolbarItem, ToolboxItem,} from "@halo-dev/richtext-editor";
-import {IconMotionLine} from "@halo-dev/components";
-import {type Component, type FunctionalComponent, markRaw, type SVGAttributes} from "vue";
-import {StickerPluginKey, StickerPmPlugin} from "@/plugin";
+import {
+  Editor,
+  mergeAttributes,
+  Node,
+  ToolbarItem,
+  ToolboxItem,
+} from "@halo-dev/richtext-editor";
+import { IconMotionLine } from "@halo-dev/components";
+import {
+  type Component,
+  type FunctionalComponent,
+  markRaw,
+  type SVGAttributes,
+} from "vue";
+import { StickerPluginKey, StickerPmPlugin } from "@/plugin";
 
 // 工具栏接口定义
 export interface ToolbarItem {
@@ -41,17 +52,15 @@ export interface CommandMenuItem {
 export interface StickerOptions {
   inline: boolean;
   HTMLAttributes: Record<string, any>;
-  getToolbarItems: ({editor}: { editor: Editor }) => ToolbarItem;
-  getToolboxItems: ({editor}: { editor: Editor }) => ToolboxItem;
+  getToolbarItems: ({ editor }: { editor: Editor }) => ToolbarItem;
+  getToolboxItems: ({ editor }: { editor: Editor }) => ToolboxItem;
   getCommandMenuItems: () => CommandMenuItem;
 }
 
-
 const openStickerPicker = (editor: Editor) => {
   //@ts-ignore
-  editor.commands.openStickerPicker(editor.state.tr)
-
-}
+  editor.commands.openStickerPicker(editor.state.tr);
+};
 
 const StickerExtension = Node.create<StickerOptions>({
   name: "sticker",
@@ -72,7 +81,7 @@ const StickerExtension = Node.create<StickerOptions>({
     return {
       inline: false,
       HTMLAttributes: {},
-      getToolbarItems({editor}: { editor: Editor }) {
+      getToolbarItems({ editor }: { editor: Editor }) {
         return {
           priority: 120,
           component: markRaw(ToolbarItem),
@@ -81,12 +90,12 @@ const StickerExtension = Node.create<StickerOptions>({
             icon: markRaw(IconMotionLine),
             title: "表情包",
             action: () => {
-              openStickerPicker(editor)
+              openStickerPicker(editor);
             },
           },
         };
       },
-      getToolboxItems({editor}: { editor: Editor }) {
+      getToolboxItems({ editor }: { editor: Editor }) {
         return {
           priority: 120,
           component: markRaw(ToolboxItem),
@@ -95,7 +104,7 @@ const StickerExtension = Node.create<StickerOptions>({
             icon: markRaw(IconMotionLine),
             title: "表情包",
             action: () => {
-              openStickerPicker(editor)
+              openStickerPicker(editor);
             },
           },
         };
@@ -107,7 +116,7 @@ const StickerExtension = Node.create<StickerOptions>({
           title: "表情包",
           keywords: ["emoji", "sticker"],
           command: ({ editor, range }: { editor: Editor; range: Range }) => {
-            openStickerPicker(editor)
+            openStickerPicker(editor);
           },
         };
       },
@@ -116,26 +125,26 @@ const StickerExtension = Node.create<StickerOptions>({
   //@ts-ignore
   addCommands() {
     return {
-      openStickerPicker: () => 
-        ({tr}: any) => {
-          tr.setMeta(StickerPluginKey, {visible: true})
-        return  1
+      openStickerPicker:
+        () =>
+        ({ tr }: any) => {
+          tr.setMeta(StickerPluginKey, { visible: true });
+          return 1;
+        },
+      testFn: () => () => {
+        return 1;
       },
-      testFn: () =>
-        ()=>{
-        return 1
-        }
-    }
+    };
   },
   inline() {
     return this.options.inline;
   },
 
   parseHTML() {
-    return [{tag: "sticker"}];
+    return [{ tag: "sticker" }];
   },
 
-  renderHTML({HTMLAttributes}) {
+  renderHTML({ HTMLAttributes }) {
     return [
       "sticker",
       mergeAttributes(this.options.HTMLAttributes, HTMLAttributes),
@@ -148,4 +157,4 @@ const StickerExtension = Node.create<StickerOptions>({
   },
 });
 
-export {StickerExtension};
+export { StickerExtension };

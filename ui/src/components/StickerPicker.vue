@@ -12,9 +12,9 @@
 export default {
   methods: {
     closePicker() {
-      this.$emit('close');
-    }
-  }
+      this.$emit("close");
+    },
+  },
 };
 </script>
 

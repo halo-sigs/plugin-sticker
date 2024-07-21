@@ -1,9 +1,9 @@
-import {EditorView, Plugin, PluginKey} from "@halo-dev/richtext-editor";
-import tippy, {type Instance as TippyInstance} from "tippy.js";
+import { EditorView, Plugin, PluginKey } from "@halo-dev/richtext-editor";
+import tippy, { type Instance as TippyInstance } from "tippy.js";
 import StickerPicker from "@/components/StickerPicker.vue";
-import {createApp, h} from "vue";
+import { createApp, h } from "vue";
 
-export const StickerPluginKey = new PluginKey('sticker');
+export const StickerPluginKey = new PluginKey("sticker");
 
 class PluginState {
   visible: boolean = false;
@@ -22,14 +22,14 @@ const createTooltip = (editorView: EditorView) => {
     },
   });
 
-  const div = document.createElement('div');
+  const div = document.createElement("div");
   app.mount(div);
 
   tooltip = tippy(editorView.dom, {
     content: div,
-    trigger: 'manual',
+    trigger: "manual",
     interactive: true,
-    placement: 'bottom-start',
+    placement: "bottom-start",
     hideOnClick: false,
   });
 };
@@ -77,4 +77,4 @@ const StickerPmPlugin = new Plugin<PluginState>({
   },
 });
 
-export {StickerPmPlugin};
+export { StickerPmPlugin };
