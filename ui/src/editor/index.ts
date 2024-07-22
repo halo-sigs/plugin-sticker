@@ -1,9 +1,14 @@
 import {
+  type CommandProps,
+  CoreEditor,
   Editor,
   mergeAttributes,
   Node,
+  Transaction,
   ToolbarItem,
   ToolboxItem,
+  type RawCommands,
+  type SingleCommands,
 } from "@halo-dev/richtext-editor";
 import { IconMotionLine } from "@halo-dev/components";
 import {
@@ -13,6 +18,14 @@ import {
   type SVGAttributes,
 } from "vue";
 import { StickerPluginKey, StickerPmPlugin } from "@/plugin";
+
+interface ExtendedRawCommands extends RawCommands {
+  openStickerPicker: () => (props: CommandProps) => boolean;
+}
+
+interface ExtendedSingleCommands extends SingleCommands {
+  openStickerPicker: (tr: Transaction) => boolean;
+}
 
 // 工具栏接口定义
 export interface ToolbarItem {
@@ -57,9 +70,10 @@ export interface StickerOptions {
   getCommandMenuItems: () => CommandMenuItem;
 }
 
-const openStickerPicker = (editor: Editor) => {
-  //@ts-ignore
-  editor.commands.openStickerPicker(editor.state.tr);
+const openStickerPicker = (editor: CoreEditor) => {
+  (editor.commands as ExtendedSingleCommands).openStickerPicker(
+    editor.state.tr,
+  );
 };
 
 const StickerExtension = Node.create<StickerOptions>({
@@ -122,18 +136,14 @@ const StickerExtension = Node.create<StickerOptions>({
       },
     };
   },
-  //@ts-ignore
-  addCommands() {
+  addCommands(): Partial<ExtendedRawCommands> {
     return {
       openStickerPicker:
         () =>
-        ({ tr }: any) => {
+        ({ tr }: { tr: Transaction }) => {
           tr.setMeta(StickerPluginKey, { visible: true });
-          return 1;
+          return true;
         },
-      testFn: () => () => {
-        return 1;
-      },
     };
   },
   inline() {
