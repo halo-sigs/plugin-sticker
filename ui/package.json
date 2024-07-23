@@ -1,10 +1,9 @@
 {
   "scripts": {
     "dev": "vite build --watch --mode=development",
-    "build": "run-p type-check \"build-only {@}\" --",
+    "build": "vue-tsc --build --force",
     "build-only": "vite build",
     "test:unit": "vitest",
-    "type-check": "vue-tsc --build --force",
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .gitignore",
     "prettier": "prettier --write src/"
   },
@@ -34,7 +33,6 @@
     "eslint": "^8.57.0",
     "eslint-plugin-vue": "^9.26.0",
     "jsdom": "^24.1.0",
-    "npm-run-all2": "^6.2.0",
     "prettier": "^3.3.2",
     "sass": "^1.77.6",
     "typescript": "~5.5.3",

@@ -1,5 +1,4 @@
 import {
-  type CommandProps,
   CoreEditor,
   Editor,
   mergeAttributes,
@@ -8,80 +7,27 @@ import {
   ToolbarItem,
   ToolboxItem,
   type RawCommands,
-  type SingleCommands,
 } from "@halo-dev/richtext-editor";
 import { IconMotionLine } from "@halo-dev/components";
-import {
-  type Component,
-  type FunctionalComponent,
-  markRaw,
-  type SVGAttributes,
-} from "vue";
+import { markRaw } from "vue";
 import { StickerPluginKey, StickerPmPlugin } from "@/plugin";
 
-interface ExtendedRawCommands extends RawCommands {
-  openStickerPicker: () => (props: CommandProps) => boolean;
-}
-
-interface ExtendedSingleCommands extends SingleCommands {
-  openStickerPicker: (tr: Transaction) => boolean;
-}
-
-// 工具栏接口定义
-export interface ToolbarItem {
-  priority: number;
-  component: Component;
-  props: {
-    editor: Editor;
-    isActive: boolean;
-    disabled?: boolean;
-    icon?: Component;
-    title?: string;
-    action?: () => void;
-  };
-  children?: ToolbarItem[];
-}
-
-export interface ToolboxItem {
-  priority: number;
-  component: Component;
-  props: {
-    editor: Editor;
-    icon?: Component;
-    title?: string;
-    description?: string;
-    action?: () => void;
-  };
-}
-
-export interface CommandMenuItem {
-  priority: number;
-  icon: FunctionalComponent<SVGAttributes>;
-  title: string;
-  keywords: string[];
-  command: ({ editor, range }: { editor: Editor; range: Range }) => void;
-}
-
-export interface StickerOptions {
-  inline: boolean;
-  HTMLAttributes: Record<string, any>;
-  getToolbarItems: ({ editor }: { editor: Editor }) => ToolbarItem;
-  getToolboxItems: ({ editor }: { editor: Editor }) => ToolboxItem;
-  getCommandMenuItems: () => CommandMenuItem;
+declare module "@halo-dev/richtext-editor" {
+  interface Commands<ReturnType> {
+    sticker: {
+      openStickerPicker: (tr: Transaction) => ReturnType;
+    };
+  }
 }
 
 const openStickerPicker = (editor: CoreEditor) => {
-  (editor.commands as ExtendedSingleCommands).openStickerPicker(
-    editor.state.tr,
-  );
+  editor.commands.openStickerPicker(editor.state.tr);
 };
 
-const StickerExtension = Node.create<StickerOptions>({
+const StickerExtension = Node.create({
   name: "sticker",
 
   atom: true,
-
-  draggable: true,
 
   group() {
     return this.options.inline ? "inline" : "block";
@@ -136,7 +82,7 @@ const StickerExtension = Node.create<StickerOptions>({
       },
     };
   },
-  addCommands(): Partial<ExtendedRawCommands> {
+  addCommands(): Partial<RawCommands> {
     return {
       openStickerPicker:
         () =>
