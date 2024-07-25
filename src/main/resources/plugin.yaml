@@ -1,0 +1,22 @@
+# Refer https://docs.halo.run/developer-guide/plugin/basics/manifest
+
+apiVersion: plugin.halo.run/v1alpha1
+kind: Plugin
+metadata:
+  # The name defines how the plugin is invoked, A unique name
+  name: sticker
+spec:
+  enabled: true
+  requires: ">=2.17.0"
+  author:
+    name: Halo
+    website: https://github.com/halo-sigs
+  logo: logo.png
+  homepage: https://github.com/halo-sigs/plugin-sticker#readme
+  repo: https://github.com/halo-sigs/plugin-sticker
+  issues: https://github.com/halo-sigs/plugin-sticker/issues
+  displayName: "表情包"
+  description: "为默认编辑器添加表情包的支持"
+  license:
+    - name: "GPL-3.0"
+      url: "https://github.com/halo-sigs/plugin-sticker/blob/main/LICENSE"
