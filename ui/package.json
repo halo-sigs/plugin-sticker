@@ -2,8 +2,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite build --watch --mode=development",
-    "build": "vue-tsc --build --force",
-    "build-only": "vite build",
+    "build": "vite build",
     "test:unit": "vitest",
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .gitignore",
     "prettier": "prettier --write src/"
