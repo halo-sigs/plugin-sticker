@@ -56,7 +56,9 @@ public class StickerAttachmentEndpoint implements CustomEndpoint {
     public RouterFunction<ServerResponse> endpoint() {
         var tag = "StickerV1alpha1Console";
         return route()
-            .POST("/sticker", contentType(MediaType.MULTIPART_FORM_DATA), this::uploadUserSticker)
+            // a get request resp test success text
+            .GET("sticker/test",this::test)
+            .POST("sticker/-/upload", contentType(MediaType.MULTIPART_FORM_DATA), this::uploadUserSticker)
             .build();
     }
 
@@ -70,11 +72,11 @@ public class StickerAttachmentEndpoint implements CustomEndpoint {
     }
 
     private Mono<ServerResponse> uploadUserSticker(ServerRequest request) {
-        final var username = request.pathVariable("name");
+        final var filename = "testfile";
         return request.body(BodyExtractors.toMultipartData())
             .map(StickerUploadRequest::new)
             .flatMap(this::uploadAvatar)
-            .flatMap(attachment -> getUserOrSelf(username)
+            .flatMap(attachment -> getUserOrSelf(filename)
                 .flatMap(user -> {
                     MetadataUtil.nullSafeAnnotations(user)
                         .put(User.AVATAR_ATTACHMENT_NAME_ANNO,
