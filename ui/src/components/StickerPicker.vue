@@ -50,7 +50,7 @@ const activeId = ref(stickerGroup.value[0].id);
 <template>
   <div class="sticker-picker h-[500px] w-[540px] bg-white shadow-xl">
     <VCard>
-      <div class="grid grid-cols-6">
+      <div class="grid grid-cols-5">
         <div
           v-for="sticker in stickers"
           :key="sticker.id"
