@@ -4,10 +4,12 @@ import static org.springframework.web.reactive.function.server.RequestPredicates
 import static org.springframework.web.reactive.function.server.RouterFunctions.route;
 
 import java.time.Duration;
+import java.util.Date;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 import com.google.common.io.Files;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.dao.OptimisticLockingFailureException;
@@ -35,11 +37,11 @@ import run.halo.app.core.extension.service.AttachmentService;
 import run.halo.app.extension.GroupVersion;
 import run.halo.app.extension.MetadataUtil;
 import run.halo.app.extension.ReactiveExtensionClient;
-import run.halo.app.infra.SystemSetting;
 import run.halo.app.plugin.ReactiveSettingFetcher;
 import run.halo.sticker.infra.StickerSetting;
+import run.halo.sticker.model.Sticker;
 
-
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class StickerAttachmentEndpoint implements CustomEndpoint {
@@ -57,8 +59,9 @@ public class StickerAttachmentEndpoint implements CustomEndpoint {
         var tag = "StickerV1alpha1Console";
         return route()
             // a get request resp test success text
-            .GET("sticker/test",this::test)
-            .POST("sticker/-/upload", contentType(MediaType.MULTIPART_FORM_DATA), this::uploadUserSticker)
+            .GET("sticker/test", this::test)
+            .POST("sticker/-/upload", contentType(MediaType.MULTIPART_FORM_DATA),
+                this::uploadUserSticker)
             .build();
     }
 
@@ -68,37 +71,29 @@ public class StickerAttachmentEndpoint implements CustomEndpoint {
     }
 
     private Mono<ServerResponse> test(ServerRequest request) {
-        return ServerResponse.ok().bodyValue("Hello, Sticker!");
+        log.info("plugin-sticker test success");
+        return ServerResponse.ok().bodyValue("Hello, Sticker dev!" + new Date());
     }
 
     private Mono<ServerResponse> uploadUserSticker(ServerRequest request) {
-        final var filename = "testfile";
+        log.info("Uploading sticker for user");
         return request.body(BodyExtractors.toMultipartData())
             .map(StickerUploadRequest::new)
-            .flatMap(this::uploadAvatar)
-            .flatMap(attachment -> getUserOrSelf(filename)
-                .flatMap(user -> {
-                    MetadataUtil.nullSafeAnnotations(user)
-                        .put(User.AVATAR_ATTACHMENT_NAME_ANNO,
-                            attachment.getMetadata().getName());
-                    return client.update(user);
-                })
-                .retryWhen(Retry.backoff(5, Duration.ofMillis(100))
-                    .filter(OptimisticLockingFailureException.class::isInstance))
-            )
-            .flatMap(user -> ServerResponse.ok().bodyValue(user));
+            .flatMap(this::uploadSticker)
+            .flatMap(this::saveSticker)
+            .retryWhen(Retry.backoff(3, Duration.ofMillis(100))
+                .filter(throwable -> throwable instanceof OptimisticLockingFailureException))
+            .flatMap(sticker -> ServerResponse.ok().bodyValue(sticker));
     }
 
-    private Mono<User> getUserOrSelf(String name) {
-        if (!SELF_USER.equals(name)) {
-            return client.get(User.class, name);
-        }
-        return ReactiveSecurityContextHolder.getContext()
-            .map(SecurityContext::getAuthentication)
-            .map(Authentication::getName)
-            .flatMap(currentUserName -> client.get(User.class, currentUserName));
+    private Mono<Sticker> saveSticker(Attachment attachment) {
+        var sticker = new Sticker();
+        sticker.setMetadata(attachment.getMetadata());
+        sticker.setSpec(attachment.getSpec());
+        sticker.setStatus(attachment.getStatus());
+        log.info("Creating sticker: {}", sticker);
+        return client.create(sticker);
     }
-
 
     public record StickerUploadRequest(MultiValueMap<String, Part> formData) {
         public FilePart getFile() {
@@ -111,15 +106,18 @@ public class StickerAttachmentEndpoint implements CustomEndpoint {
                 throw new ServerWebInputException("Invalid part of file");
             }
 
-            if (!filePart.filename().endsWith(".png")) {
-                throw new ServerWebInputException("Only support avatar in PNG format");
-            }
+            // todo: check file type
+            // if (!filePart.filename().endsWith(".png")) {
+            //     throw new ServerWebInputException("Only support avatar in PNG format");
+            // }
             return filePart;
         }
     }
 
-    private Mono<Attachment> uploadAvatar(StickerUploadRequest uploadRequest) {
-        return settingFetcher.fetch(StickerSetting.Attachment.GROUP, StickerSetting.Attachment.class)
+    private Mono<Attachment> uploadSticker(StickerUploadRequest uploadRequest) {
+        log.info("Uploading sticker file: {}", uploadRequest.getFile().filename());
+        return settingFetcher.fetch(StickerSetting.Attachment.GROUP,
+                StickerSetting.Attachment.class)
             .switchIfEmpty(
                 Mono.error(new IllegalStateException("Attachment setting is not configured"))
             )
@@ -138,6 +136,7 @@ public class StickerAttachmentEndpoint implements CustomEndpoint {
                         filePart.headers().getContentType()
                     );
                 })
+                .doOnSuccess(attachment -> log.info("Sticker file uploaded: {}", attachment))
             );
     }
 
