@@ -40,7 +40,7 @@ import run.halo.sticker.infra.StickerSetting;
 import run.halo.sticker.model.Sticker;
 import run.halo.sticker.model.StickerGroup;
 import run.halo.sticker.pojo.query.StickerQuery;
-import run.halo.sticker.service.StickerGroupService;
+import run.halo.sticker.service.StickerService;
 
 @Slf4j
 @Component
@@ -54,7 +54,7 @@ public class StickerEndpoint implements CustomEndpoint {
     private final ReactiveExtensionClient client;
     private final AttachmentService attachmentService;
     private final ReactiveSettingFetcher settingFetcher;
-    private final StickerGroupService stickerGroupService;
+    private final StickerService stickerService;
 
     @Override
     public RouterFunction<ServerResponse> endpoint() {
@@ -72,8 +72,8 @@ public class StickerEndpoint implements CustomEndpoint {
 
     private Mono<ServerResponse> listStickersByGroup(ServerRequest request) {
         log.info("List stickers by group");
-        StickerQuery query = new StickerQuery(request.queryParams());
-        return stickerGroupService.listStickers(query)
+        var query = new StickerQuery(request);
+        return stickerService.listStickers(query)
             .flatMap(stickers -> ServerResponse.ok().bodyValue(stickers));
     }
 
