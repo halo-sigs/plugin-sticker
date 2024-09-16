@@ -1,13 +1,6 @@
 package run.halo.sticker.endpoint;
 
-import static org.springframework.web.reactive.function.server.RequestPredicates.contentType;
-import static org.springframework.web.reactive.function.server.RouterFunctions.route;
-
 import com.google.common.io.Files;
-import java.time.Duration;
-import java.util.Date;
-import java.util.UUID;
-import java.util.concurrent.atomic.AtomicInteger;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -40,6 +33,14 @@ import run.halo.sticker.infra.StickerSetting;
 import run.halo.sticker.model.Sticker;
 import run.halo.sticker.model.StickerGroup;
 
+import java.security.Principal;
+import java.time.Duration;
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static org.springframework.web.reactive.function.server.RequestPredicates.contentType;
+import static org.springframework.web.reactive.function.server.RouterFunctions.route;
+
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -55,33 +56,25 @@ public class StickerAttachmentEndpoint implements CustomEndpoint {
 
     @Override
     public RouterFunction<ServerResponse> endpoint() {
-        var tag = "StickerV1alpha1Console";
         return route()
-            // a get request resp test success text
-            .GET("sticker/test", this::test)
-            .POST("sticker/{groupName}/upload", contentType(MediaType.MULTIPART_FORM_DATA),
+            .POST("sticker/-/upload", contentType(MediaType.MULTIPART_FORM_DATA),
                 this::uploadUserSticker)
             .build();
     }
 
     @Override
     public GroupVersion groupVersion() {
-        return CustomEndpoint.super.groupVersion();
-    }
-
-    private Mono<ServerResponse> test(ServerRequest request) {
-        log.info("plugin-sticker test success");
-        return ServerResponse.ok().bodyValue("Hello, Sticker dev!" + new Date());
+        return GroupVersion.parseAPIVersion("console.api.sticker.halo.run/v1alpha1");
     }
 
     private Mono<ServerResponse> uploadUserSticker(ServerRequest request) {
-        var groupName = request.pathVariable("groupName");
+        var groupName = request.queryParam("sticker-group").orElse(SELF_USER);
         log.info("Uploading sticker for user");
         return request.body(BodyExtractors.toMultipartData())
             .map(StickerUploadRequest::new)
             .flatMap(this::uploadSticker)
-            .flatMap(attachment -> getOrCreateStickerGroup(groupName)
-                .flatMap(stickerGroup -> saveSticker(attachment)
+            .flatMap(uploadAttachmentDto -> getOrCreateStickerGroup(groupName)
+                .flatMap(stickerGroup -> saveSticker(uploadAttachmentDto)
                     .doOnNext(sticker -> sticker.getSpec().setGroupName(stickerGroup.getMetadata().getName()))
                     .flatMap(client::update)
                 )
@@ -91,49 +84,51 @@ public class StickerAttachmentEndpoint implements CustomEndpoint {
             .flatMap(sticker -> ServerResponse.ok().bodyValue(sticker));
     }
 
-    private Mono<Sticker> saveSticker(Attachment attachment) {
+    private Mono<Sticker> saveSticker(UploadAttachmentDto dto) {
         var sticker = new Sticker();
-        sticker.setMetadata(attachment.getMetadata());
+        var metadata = new Metadata();
+        metadata.setName(UUID.randomUUID().toString());
+        sticker.setMetadata(metadata);
         Sticker.StickerSpec stickerSpec = new Sticker.StickerSpec();
-        stickerSpec.setName(attachment.getMetadata().getName());
+        stickerSpec.setAttachmentName(dto.attachment.getMetadata().getName());
+        stickerSpec.setDisplayName(dto.fileName);
         sticker.setSpec(stickerSpec);
-        Sticker.StickerStatus stickerStatus = new Sticker.StickerStatus();
-        stickerStatus.setDisplayName(attachment.getMetadata().getName());
         log.info("Creating sticker: {}", sticker);
         return client.create(sticker);
     }
 
     private Mono<StickerGroup> getOrCreateStickerGroup(String groupName) {
-        if (SELF_USER.equals(groupName)) {
-            return ReactiveSecurityContextHolder.getContext()
+        String finalGroupName = SELF_USER.equals(groupName) ? UUID.randomUUID().toString() : groupName;
+        return client.fetch(StickerGroup.class, finalGroupName)
+                .switchIfEmpty(getUserName().flatMap(userName -> createSelfStickerGroup(finalGroupName, userName)));
+    }
+
+    private Mono<String> getUserName() {
+        return ReactiveSecurityContextHolder.getContext()
                 .map(SecurityContext::getAuthentication)
-                .map(content -> ".user-" + content.getName())
-                .flatMap(this::fetchOrCreateStickerGroup);
-        } else {
-            return fetchOrCreateStickerGroup(groupName);
-        }
+                .map(Principal::getName);
     }
 
-    private Mono<StickerGroup> fetchOrCreateStickerGroup(String groupName) {
-        log.info("Fetching sticker group: {}", groupName);
-        return client.fetch(StickerGroup.class, groupName)
-            .switchIfEmpty(
-                Mono.defer(() -> {
-                    var stickerGroup = new StickerGroup();
-                    Metadata metadata = new Metadata();
-                    metadata.setName(groupName);
-                    stickerGroup.setMetadata(metadata);
-                    StickerGroup.StickerGroupSpec stickerGroupSpec = new StickerGroup.StickerGroupSpec();
-                    stickerGroupSpec.setDisplayName(groupName);
-                    stickerGroup.setSpec(stickerGroupSpec);
-                    log.info("Creating sticker group: {}", stickerGroup);
-                    return client.create(stickerGroup);
-                })
-            );
+    private Mono<StickerGroup> createSelfStickerGroup(String groupName, String userName) {
+        var stickerGroup = new StickerGroup();
+        var metadata = new Metadata();
+        metadata.setName(groupName);
+        stickerGroup.setMetadata(metadata);
+        var stickerGroupSpec = new StickerGroup.StickerGroupSpec();
+        stickerGroupSpec.setDisplayName(userName + "'s Stickers");
+        stickerGroupSpec.setIsPublic(false);
+        stickerGroupSpec.setIsDefault(true);
+        stickerGroupSpec.setOwner(userName);
+        stickerGroup.setSpec(stickerGroupSpec);
+        log.info("Creating sticker group: {}", stickerGroup);
+        return client.create(stickerGroup);
     }
 
-    private Mono<Attachment> uploadSticker(StickerUploadRequest uploadRequest) {
-        log.info("Uploading sticker file: {}", uploadRequest.getFile().filename());
+    private Mono<UploadAttachmentDto> uploadSticker(StickerUploadRequest uploadRequest) {
+        FilePart filePart = uploadRequest.getFile();
+        String fileName = filePart.filename(); // 获取 filename
+
+        log.info("Uploading sticker file: {}", filePart.filename());
         return settingFetcher.fetch(StickerSetting.Attachment.GROUP,
                 StickerSetting.Attachment.class)
             .switchIfEmpty(
@@ -145,7 +140,6 @@ public class StickerAttachmentEndpoint implements CustomEndpoint {
                         if (StringUtils.isBlank(stickerPolicy)) {
                             stickerPolicy = DEFAULT_STICKER_ATTACHMENT_POLICY_NAME;
                         }
-                        FilePart filePart = uploadRequest.getFile();
                         var ext = Files.getFileExtension(filePart.filename());
                         return attachmentService.upload(stickerPolicy,
                             STICKER_GROUP_NAME,
@@ -155,6 +149,7 @@ public class StickerAttachmentEndpoint implements CustomEndpoint {
                         );
                     })
                 .doOnSuccess(attachment -> log.info("Sticker file uploaded: {}", attachment))
+                .map(attachment -> new UploadAttachmentDto(attachment, fileName))
             );
     }
 
@@ -180,11 +175,10 @@ public class StickerAttachmentEndpoint implements CustomEndpoint {
                 throw new ServerWebInputException("Invalid part of file");
             }
 
-            // todo: check file type
-            // if (!filePart.filename().endsWith(".png")) {
-            //     throw new ServerWebInputException("Only support avatar in PNG format");
-            // }
             return filePart;
         }
+    }
+
+    public record UploadAttachmentDto(Attachment attachment, String fileName) {
     }
 }

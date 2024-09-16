@@ -1,8 +1,5 @@
 package run.halo.sticker.model;
 
-import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.REQUIRED;
-import static run.halo.sticker.model.StickerGroup.KIND;
-
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -11,17 +8,17 @@ import run.halo.app.core.extension.attachment.Constant;
 import run.halo.app.extension.AbstractExtension;
 import run.halo.app.extension.GVK;
 
+import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.REQUIRED;
+
 @Data
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
 @GVK(group = Constant.GROUP,
     version = Constant.VERSION,
-    kind = KIND,
+    kind = "StickerGroup",
     singular = "stickerGroup",
     plural = "stickerGroups")
 public class StickerGroup extends AbstractExtension {
-
-    public static final String KIND = "stickerGroup";
 
     @Schema(requiredMode = REQUIRED)
     private StickerGroupSpec spec;
@@ -37,6 +34,12 @@ public class StickerGroup extends AbstractExtension {
 
         @Schema(requiredMode = REQUIRED)
         private Boolean isPublic = false;
+
+        @Schema(requiredMode = REQUIRED)
+        private Boolean isDefault = false;
+
+        @Schema(requiredMode = REQUIRED)
+        private String owner;
 
         private String description;
 

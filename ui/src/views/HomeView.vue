@@ -28,14 +28,15 @@ const handleUploadFile = async () => {
 
   uploadLoading.value = true;
 
+  const uploadUrl = new URL(
+    "/apis/console.api.sticker.halo.run/v1alpha1/sticker/-/upload",
+    window.location.origin,
+  );
+  uploadUrl.searchParams.append("sticker-group", "-");
+
   try {
-    const response = await fetch(
-      "http://localhost:8090/apis/api.console.halo.run/v1alpha1/sticker/-/upload",
-      {
-        method: "POST",
-        body: formData,
-      },
-    );
+    console.log("uploadUrl", uploadUrl);
+    const response = await fetch(uploadUrl, { method: "POST", body: formData });
 
     if (!response.ok) {
       throw new Error("Upload failed");

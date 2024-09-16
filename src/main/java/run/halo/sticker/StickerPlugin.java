@@ -1,6 +1,7 @@
 package run.halo.sticker;
 
 import org.springframework.stereotype.Component;
+import run.halo.app.extension.Scheme;
 import run.halo.app.extension.SchemeManager;
 import run.halo.app.plugin.BasePlugin;
 import run.halo.app.plugin.PluginContext;
@@ -24,7 +25,7 @@ public class StickerPlugin extends BasePlugin {
 
     @Override
     public void stop() {
-        schemeManager.unregister(schemeManager.get(Sticker.class));
-        schemeManager.unregister(schemeManager.get(StickerGroup.class));
+        schemeManager.unregister(Scheme.buildFromType(Sticker.class));
+        schemeManager.unregister(Scheme.buildFromType(StickerGroup.class));
     }
 }

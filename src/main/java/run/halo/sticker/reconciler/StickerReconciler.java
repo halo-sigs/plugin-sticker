@@ -1,13 +1,5 @@
 package run.halo.sticker.reconciler;
 
-import static run.halo.app.core.extension.attachment.Constant.FINALIZER_NAME;
-import static run.halo.app.extension.ExtensionUtil.addFinalizers;
-import static run.halo.app.extension.ExtensionUtil.isDeleted;
-import static run.halo.app.extension.ExtensionUtil.removeFinalizers;
-
-import java.net.URI;
-import java.time.Duration;
-import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -20,6 +12,13 @@ import run.halo.app.extension.controller.ControllerBuilder;
 import run.halo.app.extension.controller.Reconciler;
 import run.halo.app.extension.controller.Reconciler.Request;
 import run.halo.sticker.model.Sticker;
+
+import java.net.URI;
+import java.time.Duration;
+import java.util.Set;
+
+import static run.halo.app.core.extension.attachment.Constant.FINALIZER_NAME;
+import static run.halo.app.extension.ExtensionUtil.*;
 
 
 @Slf4j
@@ -47,7 +46,7 @@ public class StickerReconciler implements Reconciler<Request> {
 
     private void handleUploadSticker(Sticker sticker) {
         log.info("StickerReconciler handleUploadSticker: {}", sticker);
-        var stickerAttachmentName = sticker.getSpec().getName();
+        var stickerAttachmentName = sticker.getSpec().getAttachmentName();
         var spec = sticker.getSpec();
         if (StringUtils.isBlank(stickerAttachmentName)) {
             if (StringUtils.isNotBlank(spec.getUrl())) {
