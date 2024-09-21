@@ -1,6 +1,13 @@
 package run.halo.sticker.endpoint;
 
+import static org.springframework.web.reactive.function.server.RequestPredicates.contentType;
+import static org.springframework.web.reactive.function.server.RouterFunctions.route;
+
 import com.google.common.io.Files;
+import java.security.Principal;
+import java.time.Duration;
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -32,19 +39,13 @@ import run.halo.app.plugin.ReactiveSettingFetcher;
 import run.halo.sticker.infra.StickerSetting;
 import run.halo.sticker.model.Sticker;
 import run.halo.sticker.model.StickerGroup;
-
-import java.security.Principal;
-import java.time.Duration;
-import java.util.UUID;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import static org.springframework.web.reactive.function.server.RequestPredicates.contentType;
-import static org.springframework.web.reactive.function.server.RouterFunctions.route;
+import run.halo.sticker.pojo.query.StickerQuery;
+import run.halo.sticker.service.StickerGroupService;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class StickerAttachmentEndpoint implements CustomEndpoint {
+public class StickerEndpoint implements CustomEndpoint {
 
     private static final String SELF_USER = "-";
     private static final String STICKER_GROUP_NAME = "sticker-group";
@@ -53,10 +54,12 @@ public class StickerAttachmentEndpoint implements CustomEndpoint {
     private final ReactiveExtensionClient client;
     private final AttachmentService attachmentService;
     private final ReactiveSettingFetcher settingFetcher;
+    private final StickerGroupService stickerGroupService;
 
     @Override
     public RouterFunction<ServerResponse> endpoint() {
         return route()
+            .GET("stickers", this::listStickersByGroup)
             .POST("sticker/-/upload", contentType(MediaType.MULTIPART_FORM_DATA),
                 this::uploadUserSticker)
             .build();
@@ -65,6 +68,13 @@ public class StickerAttachmentEndpoint implements CustomEndpoint {
     @Override
     public GroupVersion groupVersion() {
         return GroupVersion.parseAPIVersion("console.api.sticker.halo.run/v1alpha1");
+    }
+
+    private Mono<ServerResponse> listStickersByGroup(ServerRequest request) {
+        log.info("List stickers by group");
+        StickerQuery query = new StickerQuery(request.queryParams());
+        return stickerGroupService.listStickers(query)
+            .flatMap(stickers -> ServerResponse.ok().bodyValue(stickers));
     }
 
     private Mono<ServerResponse> uploadUserSticker(ServerRequest request) {
