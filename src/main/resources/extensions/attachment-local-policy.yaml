@@ -1,0 +1,10 @@
+apiVersion: storage.halo.run/v1alpha1
+kind: Group
+metadata:
+  name: sticker-group
+  labels:
+    halo.run/hidden: "false"
+  finalizers:
+    - system-protection
+spec:
+  displayName: Sticker

@@ -56,4 +56,8 @@ halo {
     superAdminUsername = 'airbo'
     superAdminPassword = '123456'
     externalUrl = 'http://localhost:8090'
+//    docker {
+//        url = 'npipe:////./pipe/docker_engine'
+//        apiVersion = '1.42'
+//    }
 }
