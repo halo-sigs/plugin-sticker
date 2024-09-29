@@ -1,13 +1,19 @@
 <script lang="ts">
-export default {
-  emits: ["close"],
-  methods: {
-    closePicker() {
-      this.$emit("close");
+import { defineComponent } from "vue";
+import { Editor } from "@halo-dev/richtext-editor";
+
+export default defineComponent({
+  name: "StickerPicker",
+  props: {
+    editor: {
+      type: Object as () => Editor,
+      required: true,
     },
   },
-};
+  emits: ["close"],
+});
 </script>
+
 <script lang="ts" setup>
 import { IconAddCircle, VButton, VCard, VEmpty, VLoading, VSpace, VTabbar } from "@halo-dev/components";
 import { ref, watch } from "vue";
@@ -15,6 +21,27 @@ import { useQuery } from "@tanstack/vue-query";
 import LazyImage from "@/components/LazyImage.vue";
 import { axiosInstance } from "@halo-dev/api-client";
 import type { Page, Sticker, StickerGroup } from "@/types";
+
+const props = defineProps<{
+  editor: Editor;
+}>();
+
+const emit = defineEmits<{
+  (e: "close"): void;
+}>();
+
+const closePicker = () => {
+  emit("close");
+};
+
+const handleClickSticker = (sticker: Sticker) => {
+  if (sticker.spec && sticker.spec.url) {
+    props.editor.commands.insertSticker(sticker.spec.url);
+    closePicker();
+  } else {
+    console.error("Sticker URL is missing");
+  }
+};
 
 const page = ref(1);
 const size = ref(-1);
@@ -136,8 +163,8 @@ const handleUploadSticker = () => {
                 :key="sticker.metadata.name"
                 class="mx-3 flex items-center justify-center"
               >
-                <div class="group relative bg-white">
-                  <div class="flex flex-col cursor-pointer justify-center overflow-hidden p2 hover:bg-gray-50">
+                <div class="group relative bg-white" @click="handleClickSticker(sticker)">
+                  <div class="flex flex-col cursor-pointer justify-center overflow-hidden p2 hover:bg-gray-100">
                     <LazyImage
                       :key="sticker.metadata.name"
                       :alt="sticker.spec.displayName"
@@ -162,7 +189,7 @@ const handleUploadSticker = () => {
             </div>
           </Transition>
         </div>
-        <div class="mx2 my3 w-full">
+        <div class="mx2 mt3 w-full">
           <VTabbar
             v-if="groups"
             v-model:active-id="activeGroup"

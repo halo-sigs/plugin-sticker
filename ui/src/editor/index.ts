@@ -16,6 +16,7 @@ declare module "@halo-dev/richtext-editor" {
   interface Commands<ReturnType> {
     sticker: {
       openStickerPicker: (tr: Transaction) => ReturnType;
+      insertSticker: (src: string) => ReturnType;
     };
   }
 }
@@ -34,7 +35,20 @@ const StickerExtension = Node.create({
   },
 
   addAttributes() {
-    return {};
+    return {
+      src: {
+        default: null,
+        parseHTML: (element) => element.getAttribute("src"),
+        renderHTML: (attributes) => {
+          if (!attributes.src) {
+            return {};
+          }
+          return {
+            src: attributes.src,
+          };
+        },
+      },
+    };
   },
 
   addOptions(): any {
@@ -75,7 +89,7 @@ const StickerExtension = Node.create({
           icon: markRaw(IconMotionLine),
           title: "表情包",
           keywords: ["emoji", "sticker"],
-          command: ({ editor, range }: { editor: Editor; range: Range }) => {
+          command: ({ editor }: { editor: Editor; range: Range }) => {
             openStickerPicker(editor);
           },
         };
@@ -90,6 +104,16 @@ const StickerExtension = Node.create({
           tr.setMeta(StickerPluginKey, { visible: true });
           return true;
         },
+      insertSticker:
+        (src: string) =>
+        ({ chain }) => {
+          return chain()
+            .insertContent({
+              type: this.name,
+              attrs: { src },
+            })
+            .run();
+        },
     };
   },
   inline() {
@@ -97,19 +121,15 @@ const StickerExtension = Node.create({
   },
 
   parseHTML() {
-    return [{ tag: "sticker" }];
+    return [{ tag: "img[data-sticker]" }];
   },
 
   renderHTML({ HTMLAttributes }) {
-    return [
-      "sticker",
-      mergeAttributes(this.options.HTMLAttributes, HTMLAttributes),
-      ["img"],
-    ];
+    return ["img", mergeAttributes(this.options.HTMLAttributes, HTMLAttributes, { "data-sticker": "" })];
   },
 
   addProseMirrorPlugins() {
-    return [StickerPmPlugin];
+    return [StickerPmPlugin(this.editor)];
   },
 });
 
