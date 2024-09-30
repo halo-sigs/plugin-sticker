@@ -1,0 +1,46 @@
+apiVersion: v1alpha1
+kind: Role
+metadata:
+  name: role-template-stickers-view
+  labels:
+    halo.run/role-template: "true"
+  annotations:
+    rbac.authorization.halo.run/module: "表情包"
+    rbac.authorization.halo.run/ui-permissions: '["plugin:stickers:view"]'
+    rbac.authorization.halo.run/display-name: "表情包查看"
+rules:
+  - apiGroups: [ "storage.halo.run", "sticker.api.halo.run" ]
+    resources: [ "stickers", "stickerGroups" ]
+    verbs: [ "get", "list" ]
+---
+apiVersion: v1alpha1
+kind: Role
+metadata:
+  name: role-template-stickers-manage
+  labels:
+    halo.run/role-template: "true"
+  annotations:
+    rbac.authorization.halo.run/ui-permissions: '["plugin:stickers:manage"]'
+    rbac.authorization.halo.run/module: "表情包"
+    rbac.authorization.halo.run/display-name: "管理表情包"
+rules:
+  - apiGroups: [ "storage.halo.run" ]
+    resources: [ "stickers", "stickerGroups" ]
+    verbs: [ "get", "list", "patch", "update", "delete", "deletecollection" ]
+---
+apiVersion: v1alpha1
+kind: Role
+metadata:
+  name: role-template-selfstickers-manage
+  labels:
+    halo.run/role-template: "true"
+  annotations:
+    rbac.authorization.halo.run/aggregate-to-editor: "true"
+    rbac.authorization.halo.run/aggregate-to-authenticated: "true"
+    rbac.authorization.halo.run/ui-permissions: '["plugin:selfStickers:manage"]'
+    rbac.authorization.halo.run/module: "表情包"
+    rbac.authorization.halo.run/display-name: "管理自己的表情包"
+rules:
+  - apiGroups: [ "sticker.api.halo.run" ]
+    resources: [ "stickers", "stickers/upload" ]
+    verbs: [ "create", "list" ]

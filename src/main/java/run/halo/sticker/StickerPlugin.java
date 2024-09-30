@@ -1,8 +1,11 @@
 package run.halo.sticker;
 
+import static run.halo.app.extension.index.IndexAttributeFactory.simpleAttribute;
+
 import org.springframework.stereotype.Component;
 import run.halo.app.extension.Scheme;
 import run.halo.app.extension.SchemeManager;
+import run.halo.app.extension.index.IndexSpec;
 import run.halo.app.plugin.BasePlugin;
 import run.halo.app.plugin.PluginContext;
 import run.halo.sticker.model.Sticker;
@@ -19,7 +22,15 @@ public class StickerPlugin extends BasePlugin {
 
     @Override
     public void start() {
-        schemeManager.register(Sticker.class);
+        schemeManager.register(Sticker.class,indexSpecs -> {
+            indexSpecs.add(new IndexSpec()
+                .setName("spec.groupName")
+                .setIndexFunc(simpleAttribute(Sticker.class, moment -> {
+                    var tags = moment.getSpec().getGroupName();
+                    return tags == null ? "" : tags;
+                }))
+            );
+        });
         schemeManager.register(StickerGroup.class);
     }
 

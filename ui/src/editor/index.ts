@@ -16,6 +16,7 @@ declare module "@halo-dev/richtext-editor" {
   interface Commands<ReturnType> {
     sticker: {
       openStickerPicker: (tr: Transaction) => ReturnType;
+      insertSticker: (src: string) => ReturnType;
     };
   }
 }
@@ -29,15 +30,37 @@ const StickerExtension = Node.create({
 
   atom: true,
 
-  group() {
-    return this.options.inline ? "inline" : "block";
-  },
+  group: "inline",
+
+  inline: true,
 
   addAttributes() {
-    return {};
+    return {
+      src: {
+        default: null,
+        parseHTML: (element) => element.getAttribute("src"),
+        renderHTML: (attributes) => {
+          if (!attributes.src) {
+            return {};
+          }
+          return {
+            src: attributes.src,
+          };
+        },
+      },
+      style: {
+        default: "display: inline-block; vertical-align: baseline; height: 3em; width: auto; margin: 0 0.1em;",
+        parseHTML: (element) => element.getAttribute("style"),
+        renderHTML: (attributes) => {
+          return {
+            style: attributes.style,
+          };
+        },
+      },
+    };
   },
 
-  addOptions(): any {
+  addOptions() {
     return {
       inline: false,
       HTMLAttributes: {},
@@ -75,7 +98,7 @@ const StickerExtension = Node.create({
           icon: markRaw(IconMotionLine),
           title: "表情包",
           keywords: ["emoji", "sticker"],
-          command: ({ editor, range }: { editor: Editor; range: Range }) => {
+          command: ({ editor }: { editor: Editor; range: Range }) => {
             openStickerPicker(editor);
           },
         };
@@ -90,26 +113,29 @@ const StickerExtension = Node.create({
           tr.setMeta(StickerPluginKey, { visible: true });
           return true;
         },
+      insertSticker:
+        (src: string) =>
+        ({ chain }) => {
+          return chain()
+            .insertContent({
+              type: this.name,
+              attrs: { src },
+            })
+            .run();
+        },
     };
-  },
-  inline() {
-    return this.options.inline;
   },
 
   parseHTML() {
-    return [{ tag: "sticker" }];
+    return [{ tag: "img[data-sticker]" }];
   },
 
   renderHTML({ HTMLAttributes }) {
-    return [
-      "sticker",
-      mergeAttributes(this.options.HTMLAttributes, HTMLAttributes),
-      ["img"],
-    ];
+    return ["img", mergeAttributes(this.options.HTMLAttributes, HTMLAttributes, { "data-sticker": "" })];
   },
 
   addProseMirrorPlugins() {
-    return [StickerPmPlugin];
+    return [StickerPmPlugin(this.editor as Editor)];
   },
 });
 
