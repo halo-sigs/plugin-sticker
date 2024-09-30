@@ -5,12 +5,12 @@ metadata:
   labels:
     halo.run/role-template: "true"
   annotations:
-    rbac.authorization.halo.run/module: "Sticker Management"
+    rbac.authorization.halo.run/module: "表情包"
     rbac.authorization.halo.run/ui-permissions: '["plugin:stickers:view"]'
     rbac.authorization.halo.run/display-name: "表情包查看"
 rules:
-  - apiGroups: [ "core.halo.run", "console.api.photo.halo.run"]
-    resources: [ "stickers", "stickergroups" ]
+  - apiGroups: [ "storage.halo.run", "console.api.sticker.halo.run" ]
+    resources: [ "stickers", "stickerGroups" ]
     verbs: [ "get", "list" ]
 ---
 apiVersion: v1alpha1
@@ -22,9 +22,9 @@ metadata:
   annotations:
     rbac.authorization.halo.run/dependencies: '["role-template-stickers-view"]'
     rbac.authorization.halo.run/ui-permissions: '["plugin:stickers:manage"]'
-    rbac.authorization.halo.run/module: "Sticker Management"
+    rbac.authorization.halo.run/module: "表情包"
     rbac.authorization.halo.run/display-name: "表情包"
 rules:
-  - apiGroups: [ "core.halo.run", "console.api.photo.halo.run"]
-    resources: [ "stickers", "stickergroups" ]
+  - apiGroups: [ "storage.halo.run", "console.api.sticker.halo.run" ]
+    resources: [ "stickers", "stickerGroups" ]
     verbs: [ "create", "patch", "update", "delete", "deletecollection" ]
