@@ -3,6 +3,7 @@ import StickerManage from "./views/StickerManage.vue";
 import { markRaw } from "vue";
 import { IconMotionLine } from "@halo-dev/components";
 import { StickerExtension } from "@/editor";
+import StickerManageUser from "./views/StickerManageUser.vue";
 
 export default definePlugin({
   components: {},
@@ -32,7 +33,7 @@ export default definePlugin({
       route: {
         path: "/sticker",
         name: "Sticker",
-        component: StickerManage,
+        component: StickerManageUser,
         meta: {
           title: "表情管理",
           searchable: true,

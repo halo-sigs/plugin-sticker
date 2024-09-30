@@ -17,7 +17,7 @@ import {
   Dialog,
 } from "@halo-dev/components";
 import LazyImage from "@/components/LazyImage.vue";
-import StickerGroupList from "@/components/StickerGroupList.vue";
+import StickerGroupListUser from "@/components/StickerGroupListUser.vue";
 import type { Page, Sticker } from "@/types";
 import { useQuery, useQueryClient } from "@tanstack/vue-query";
 import { axiosInstance } from "@halo-dev/api-client";
@@ -94,7 +94,7 @@ const handleDeleteInBatch = () => {
     onConfirm: async () => {
       try {
         const promises = Array.from(selectedStickers.value).map((sticker) => {
-          return axiosInstance.delete(`/apis/storage.halo.run/v1alpha1/stickers/${sticker.metadata.name}`);
+          return axiosInstance.delete(`/apis/sticker.api.halo.run/v1alpha1/stickers/${sticker.metadata.name}`);
         });
         await Promise.all(promises);
       } catch (e) {
@@ -221,7 +221,7 @@ const pageRefetch = async () => {
   <div class="p-4">
     <div class="flex flex-col gap-2 lg:flex-row">
       <div class="w-full flex-none lg:w-96">
-        <StickerGroupList ref="groupListRef" @select="groupSelectHandle" />
+        <StickerGroupListUser ref="groupListRef" @select="groupSelectHandle" />
       </div>
       <div class="min-w-0 flex-1 shrink">
         <VCard>
@@ -237,7 +237,7 @@ const pageRefetch = async () => {
                     <VButton type="danger" @click="handleDeleteInBatch"> 删除</VButton>
                   </VSpace>
                 </div>
-                <div v-if="selectedGroup" v-permission="['plugin:stickers:manage']" class="mt-4 flex sm:mt-0">
+                <div v-if="selectedGroup" class="mt-4 flex sm:mt-0">
                   <VDropdown>
                     <VButton size="xs"> 新增</VButton>
                     <template #popper>
@@ -257,7 +257,7 @@ const pageRefetch = async () => {
               <template #actions>
                 <VSpace>
                   <VButton @click="refetch"> 刷新</VButton>
-                  <VButton v-permission="['plugin:stickers:manage']" type="primary" @click="open">
+                  <VButton type="primary" @click="open">
                     <template #icon>
                       <IconAddCircle class="size-full" />
                     </template>

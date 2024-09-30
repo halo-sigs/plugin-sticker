@@ -35,17 +35,17 @@ const { data: groups, refetch } = useQuery<Array<StickerGroup>>({
   queryKey: [],
   queryFn: async () => {
     loading.value = true;
-    const { data } = await axiosInstance.get<Page<StickerGroup>>("/apis/storage.halo.run/v1alpha1/stickerGroups");
+    const { data } = await axiosInstance.get<Page<StickerGroup>>("/apis/sticker.api.halo.run/v1alpha1/stickerGroups");
     loading.value = false;
-    return data.items
+    return data
       .map((group) => {
         if (group.spec) {
-          group.spec.sequence = group.spec.sequence || 0;
+          group.spec.sequence = group.spec.sequence ?? 0;
         }
         return group;
       })
       .sort((a, b) => {
-        return (a.spec?.sequence || 0) - (b.spec?.sequence || 0);
+        return (a.spec?.sequence ?? 0) - (b.spec?.sequence ?? 0);
       });
   },
   refetchInterval(data) {

@@ -49,10 +49,14 @@ const size = ref(-1);
 const total = ref(0);
 const keyword = ref("");
 
+const loading = ref(false);
+const activeGroup = ref("");
+
 const { data: stickerList, refetch: refetchStickers } = useQuery<Sticker>({
   queryKey: ["stickers"],
+  enabled: activeGroup.value !== "",
   queryFn: async () => {
-    const { data } = await axiosInstance.get<Page<Sticker>>("/apis/console.api.sticker.halo.run/v1alpha1/stickers", {
+    const { data } = await axiosInstance.get<Page<Sticker>>("/apis/sticker.api.halo.run/v1alpha1/stickers", {
       params: {
         page: page.value,
         size: size.value,
@@ -75,8 +79,6 @@ const { data: stickerList, refetch: refetchStickers } = useQuery<Sticker>({
 });
 
 const stickers = ref<Array<Sticker>>(stickerList);
-const loading = ref(false);
-const activeGroup = ref("");
 watch(activeGroup, () => {
   refetchStickers();
 });
@@ -89,9 +91,9 @@ const { data: groups } = useQuery<Array<StickerGroup>>({
   queryKey: ["stickerGroups"],
   queryFn: async () => {
     loading.value = true;
-    const { data } = await axiosInstance.get<Page<StickerGroup>>("/apis/storage.halo.run/v1alpha1/stickerGroups");
+    const { data } = await axiosInstance.get<Page<StickerGroup>>("/apis/sticker.api.halo.run/v1alpha1/stickerGroups");
     loading.value = false;
-    return data.items
+    return data
       .map((group) => {
         if (group.spec) {
           group.spec.sequence = group.spec.sequence || 0;
