@@ -1,4 +1,4 @@
-import {type Editor, EditorView, Plugin, PluginKey} from "@halo-dev/richtext-editor";
+import { type Editor, Plugin, PluginKey } from "@halo-dev/richtext-editor";
 import tippy, { type Instance as TippyInstance } from "tippy.js";
 import StickerPicker from "@/components/StickerPicker.vue";
 import { createApp, h } from "vue";

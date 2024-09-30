@@ -108,6 +108,7 @@ public class StickerEndpoint implements CustomEndpoint {
     }
 
     private Mono<StickerGroup> getOrCreateStickerGroup(String groupName) {
+        //todo find the default group
         String finalGroupName = SELF_USER.equals(groupName) ? UUID.randomUUID().toString() : groupName;
         return client.fetch(StickerGroup.class, finalGroupName)
                 .switchIfEmpty(getUserName().flatMap(userName -> createSelfStickerGroup(finalGroupName, userName)));

@@ -20,9 +20,12 @@ import LazyImage from "@/components/LazyImage.vue";
 import StickerEditingModal from "@/components/StickerEditingModal.vue";
 import StickerGroupList from "@/components/StickerGroupList.vue";
 import type { Page, Sticker } from "@/types";
-import { useQuery } from "@tanstack/vue-query";
+import { useQuery, useQueryClient } from "@tanstack/vue-query";
 import { axiosInstance } from "@halo-dev/api-client";
 import Fuse from "fuse.js";
+import { useFileDialog } from "@vueuse/core";
+
+const queryClient = useQueryClient();
 
 const editingModal = ref(false);
 const selectedSticker = ref<Sticker | undefined>(undefined);
@@ -39,6 +42,21 @@ const keyword = ref("");
 const selectedFile = ref<File | null>(null);
 const uploadLoading = ref(false);
 
+const { open, onChange } = useFileDialog({
+  accept: ".jpg, .jpeg, .png",
+  multiple: false,
+});
+
+onChange((files) => {
+  if (!files) {
+    return;
+  }
+  if (files.length > 0) {
+    selectedFile.value = files[0];
+    handleUploadFile();
+  }
+});
+
 const handleUploadFile = async () => {
   if (!selectedFile.value) {
     Toast.error("No file selected");
@@ -51,7 +69,7 @@ const handleUploadFile = async () => {
   uploadLoading.value = true;
 
   const uploadUrl = new URL("/apis/console.api.sticker.halo.run/v1alpha1/sticker/-/upload", window.location.origin);
-  uploadUrl.searchParams.append("sticker-group", "-");
+  uploadUrl.searchParams.append("sticker-group", selectedGroup.value ?? "-");
 
   try {
     console.log("uploadUrl", uploadUrl);
@@ -60,7 +78,7 @@ const handleUploadFile = async () => {
     if (!response.ok) {
       Toast.error("File upload failed");
     }
-
+    queryClient.resetQueries([page, size, keyword, selectedGroup]).catch(console.error);
     Toast.success("File uploaded successfully");
   } catch (error) {
     Toast.error("File upload failed");
@@ -229,8 +247,7 @@ const pageRefetch = async () => {
                   <VDropdown>
                     <VButton size="xs"> 新增</VButton>
                     <template #popper>
-                      <VDropdownItem @click="handleUploadFile()"> 新增</VDropdownItem>
-                      <!--                      <VDropdownItem @click="attachmentModal = true"> 从附件库选择 </VDropdownItem>-->
+                      <VDropdownItem @click="open()"> 新增</VDropdownItem>
                     </template>
                   </VDropdown>
                 </div>
@@ -246,7 +263,7 @@ const pageRefetch = async () => {
               <template #actions>
                 <VSpace>
                   <VButton @click="refetch"> 刷新</VButton>
-                  <VButton v-permission="['plugin:stickers:manage']" type="primary" @click="handleOpenEditingModal()">
+                  <VButton v-permission="['plugin:stickers:manage']" type="primary" @click="open">
                     <template #icon>
                       <IconAddCircle class="size-full" />
                     </template>

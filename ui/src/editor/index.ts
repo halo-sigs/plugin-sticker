@@ -30,9 +30,9 @@ const StickerExtension = Node.create({
 
   atom: true,
 
-  group() {
-    return this.options.inline ? "inline" : "block";
-  },
+  group: "inline",
+
+  inline: true,
 
   addAttributes() {
     return {
@@ -48,10 +48,19 @@ const StickerExtension = Node.create({
           };
         },
       },
+      style: {
+        default: 'display: inline-block; vertical-align: middle; height: 1.2em; width: auto; margin: 0 0.1em;',
+        parseHTML: (element) => element.getAttribute("style"),
+        renderHTML: (attributes) => {
+          return {
+            style: attributes.style,
+          };
+        },
+      },
     };
   },
 
-  addOptions(): any {
+  addOptions() {
     return {
       inline: false,
       HTMLAttributes: {},
@@ -116,9 +125,6 @@ const StickerExtension = Node.create({
         },
     };
   },
-  inline() {
-    return this.options.inline;
-  },
 
   parseHTML() {
     return [{ tag: "img[data-sticker]" }];
@@ -129,7 +135,7 @@ const StickerExtension = Node.create({
   },
 
   addProseMirrorPlugins() {
-    return [StickerPmPlugin(this.editor)];
+    return [StickerPmPlugin(this.editor as Editor)];
   },
 });
 

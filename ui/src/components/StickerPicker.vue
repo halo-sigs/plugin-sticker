@@ -15,12 +15,13 @@ export default defineComponent({
 </script>
 
 <script lang="ts" setup>
-import { IconAddCircle, VButton, VCard, VEmpty, VLoading, VSpace, VTabbar } from "@halo-dev/components";
+import {IconAddCircle, Toast, VButton, VCard, VEmpty, VLoading, VSpace, VTabbar} from "@halo-dev/components";
 import { ref, watch } from "vue";
 import { useQuery } from "@tanstack/vue-query";
 import LazyImage from "@/components/LazyImage.vue";
 import { axiosInstance } from "@halo-dev/api-client";
 import type { Page, Sticker, StickerGroup } from "@/types";
+import {useFileDialog} from "@vueuse/core";
 
 const props = defineProps<{
   editor: Editor;
@@ -124,8 +125,52 @@ const handleSelectedClick = (group: StickerGroup) => {
   console.log(activeGroup.value);
 };
 
-const handleUploadSticker = () => {
-  console.log("upload sticker");
+const { open, onChange } = useFileDialog({
+  accept: ".jpg, .jpeg, .png",
+  multiple: false,
+});
+
+const selectedFile = ref<File | null>(null);
+const uploadLoading = ref(false);
+
+onChange((files) => {
+  if (!files) {
+    return;
+  }
+  if (files.length > 0) {
+    selectedFile.value = files[0];
+    handleUploadFile();
+  }
+});
+
+const handleUploadFile = async () => {
+  if (!selectedFile.value) {
+    Toast.error("No file selected");
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append("file", selectedFile.value);
+
+  uploadLoading.value = true;
+
+  const uploadUrl = new URL("/apis/console.api.sticker.halo.run/v1alpha1/sticker/-/upload", window.location.origin);
+  uploadUrl.searchParams.append("sticker-group", "-");
+
+  try {
+    console.log("uploadUrl", uploadUrl);
+    const response = await fetch(uploadUrl, { method: "POST", body: formData });
+
+    if (!response.ok) {
+      Toast.error("File upload failed");
+    }
+
+    Toast.success("File uploaded successfully");
+  } catch (error) {
+    Toast.error("File upload failed");
+  } finally {
+    uploadLoading.value = false;
+  }
 };
 </script>
 
@@ -146,7 +191,7 @@ const handleUploadSticker = () => {
               <template #actions>
                 <VSpace>
                   <VButton @click="refetchStickers"> 刷新</VButton>
-                  <VButton v-permission="['plugin:stickers:create']" type="primary" @click="handleUploadSticker">
+                  <VButton v-permission="['plugin:stickers:create']" type="primary" @click="open">
                     <template #icon>
                       <IconAddCircle class="size-full" />
                     </template>
