@@ -94,8 +94,8 @@ const handleDeleteInBatch = () => {
     confirmType: "danger",
     onConfirm: async () => {
       try {
-        const promises = Array.from(selectedStickers.value).map((photo) => {
-          return axiosInstance.delete(`/apis/core.halo.run/v1alpha1/photos/${photo.metadata.name}`);
+        const promises = Array.from(selectedStickers.value).map((sticker) => {
+          return axiosInstance.delete(`/apis/storage.halo.run/v1alpha1/stickers/${sticker.metadata.name}`);
         });
         await Promise.all(promises);
       } catch (e) {
