@@ -26,6 +26,26 @@ export default definePlugin({
       },
     },
   ],
+  ucRoutes: [
+    {
+      parentName: "Root",
+      route: {
+        path: "/sticker",
+        name: "Sticker",
+        component: StickerManage,
+        meta: {
+          title: "表情管理",
+          searchable: true,
+          menu: {
+            name: "表情管理",
+            group: "system",
+            icon: markRaw(IconMotionLine),
+            priority: 0,
+          },
+        },
+      },
+    },
+  ],
   extensionPoints: {
     "default:editor:extension:create": () => {
       return [StickerExtension];

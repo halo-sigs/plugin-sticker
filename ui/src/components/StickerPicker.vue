@@ -15,13 +15,13 @@ export default defineComponent({
 </script>
 
 <script lang="ts" setup>
-import {IconAddCircle, Toast, VButton, VCard, VEmpty, VLoading, VSpace, VTabbar} from "@halo-dev/components";
+import { IconAddCircle, Toast, VButton, VCard, VEmpty, VLoading, VSpace, VTabbar } from "@halo-dev/components";
 import { ref, watch } from "vue";
 import { useQuery } from "@tanstack/vue-query";
 import LazyImage from "@/components/LazyImage.vue";
 import { axiosInstance } from "@halo-dev/api-client";
 import type { Page, Sticker, StickerGroup } from "@/types";
-import {useFileDialog} from "@vueuse/core";
+import { useFileDialog } from "@vueuse/core";
 
 const props = defineProps<{
   editor: Editor;
@@ -202,32 +202,30 @@ const handleUploadFile = async () => {
             </VEmpty>
           </Transition>
           <Transition v-else appear name="fade">
-            <div class="grid grid-cols-6">
-              <div
-                v-for="sticker in stickers"
-                :key="sticker.metadata.name"
-                class="mx-3 flex items-center justify-center"
-              >
-                <div class="group relative bg-white" @click="handleClickSticker(sticker)">
-                  <div class="flex flex-col cursor-pointer justify-center overflow-hidden p2 hover:bg-gray-100">
-                    <LazyImage
-                      :key="sticker.metadata.name"
-                      :alt="sticker.spec.displayName"
-                      :src="sticker.spec.url ?? ''"
-                      classes="size-full pointer-events-none"
-                    >
-                      <template #loading>
-                        <div class="h-full flex justify-center">
-                          <VLoading></VLoading>
-                        </div>
-                      </template>
-                      <template #error>
-                        <div class="h-full flex items-center justify-center object-cover">
-                          <span class="text-xs text-red-400"> 加载异常 </span>
-                        </div>
-                      </template>
-                    </LazyImage>
-                    <p class="m0 text-gray-700">{{ sticker.spec.displayName }}</p>
+            <div class="grid grid-cols-5 gap-2">
+              <div v-for="sticker in stickers" :key="sticker.metadata.name" class="flex items-center justify-center">
+                <div class="group relative w-full bg-white" @click="handleClickSticker(sticker)">
+                  <div class="flex flex-col cursor-pointer justify-center overflow-hidden p-2 hover:bg-gray-100">
+                    <div class="aspect-w-1 aspect-h-1 w-full">
+                      <LazyImage
+                        :key="sticker.metadata.name"
+                        :alt="sticker.spec.displayName"
+                        :src="sticker.spec.url ?? ''"
+                        class="pointer-events-none h-full w-full object-cover"
+                      >
+                        <template #loading>
+                          <div class="h-full flex items-center justify-center">
+                            <VLoading></VLoading>
+                          </div>
+                        </template>
+                        <template #error>
+                          <div class="h-full flex items-center justify-center">
+                            <span class="text-xs text-red-400">加载异常</span>
+                          </div>
+                        </template>
+                      </LazyImage>
+                    </div>
+                    <p class="my1 truncate text-center text-sm text-gray-700">{{ sticker.spec.displayName }}</p>
                   </div>
                 </div>
               </div>

@@ -49,7 +49,7 @@ const StickerExtension = Node.create({
         },
       },
       style: {
-        default: 'display: inline-block; vertical-align: middle; height: 1.2em; width: auto; margin: 0 0.1em;',
+        default: "display: inline-block; vertical-align: baseline; height: 3em; width: auto; margin: 0 0.1em;",
         parseHTML: (element) => element.getAttribute("style"),
         renderHTML: (attributes) => {
           return {
