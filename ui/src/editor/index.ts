@@ -3,10 +3,11 @@ import {
   Editor,
   mergeAttributes,
   Node,
-  Transaction,
+  type RawCommands,
   ToolbarItem,
   ToolboxItem,
-  type RawCommands,
+  Transaction,
+  type Range,
 } from "@halo-dev/richtext-editor";
 import { IconMotionLine } from "@halo-dev/components";
 import { markRaw } from "vue";
@@ -98,7 +99,9 @@ const StickerExtension = Node.create({
           icon: markRaw(IconMotionLine),
           title: "表情包",
           keywords: ["emoji", "sticker"],
-          command: ({ editor }: { editor: Editor; range: Range }) => {
+          command: ({ editor, range }: { editor: CoreEditor; range: Range }) => {
+            console.log("getCommandMenuItems");
+            editor.chain().focus().deleteRange(range).run();
             openStickerPicker(editor);
           },
         };
