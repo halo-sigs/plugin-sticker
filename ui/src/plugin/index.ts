@@ -49,12 +49,18 @@ const StickerPmPlugin = (editor: Editor) =>
         app.use(VueQueryPlugin);
         app.mount(div);
 
+        const handleClose = () => {
+          tooltip?.hide();
+          editorView.dispatch(editorView.state.tr.setMeta(StickerPluginKey, { visible: false }));
+        };
+
         tooltip = tippy(editorView.dom, {
           content: div,
           trigger: "manual",
           interactive: true,
           placement: "bottom-start",
           hideOnClick: false,
+          onClickOutside: handleClose,
         });
       }
 

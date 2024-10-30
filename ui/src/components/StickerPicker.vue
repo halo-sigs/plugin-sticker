@@ -15,8 +15,18 @@ export default defineComponent({
 </script>
 
 <script lang="ts" setup>
-import { IconAddCircle, Toast, VButton, VCard, VEmpty, VLoading, VSpace, VTabbar } from "@halo-dev/components";
-import { ref, watch } from "vue";
+import {
+  IconAddCircle,
+  IconClose,
+  Toast,
+  VButton,
+  VCard,
+  VEmpty,
+  VLoading,
+  VSpace,
+  VTabbar,
+} from "@halo-dev/components";
+import { onMounted, onUnmounted, ref, watch } from "vue";
 import { useQuery } from "@tanstack/vue-query";
 import LazyImage from "@/components/LazyImage.vue";
 import { axiosInstance } from "@halo-dev/api-client";
@@ -179,6 +189,9 @@ const handleUploadFile = async () => {
 <template>
   <div class="sticker-picker h-[500px] w-[540px] bg-white shadow-xl">
     <VCard>
+      <button class="absolute right-2 top-2 z-50 rounded-full p-1 hover:bg-gray-100" @click="closePicker">
+        <IconClose class="h-4 w-4 text-gray-500"/>
+      </button>
       <div class="h-[500px] flex flex-col items-center justify-center">
         <div class="grow">
           <Transition v-if="loading" appear name="fade">
@@ -250,7 +263,6 @@ const handleUploadFile = async () => {
         </div>
       </div>
     </VCard>
-    <button @click="closePicker">关闭</button>
   </div>
 </template>
 
