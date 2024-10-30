@@ -68,8 +68,8 @@ public class StickerEndpoint implements CustomEndpoint {
                         .description("List stickers by group.")
                         .tag(tag)
                         .response(responseBuilder().implementation(
-                            ListResult.generateGenericClass(Sticker.class)));
-
+                            ListResult.generateGenericClass(Sticker.class))
+                        );
                     // 如果有查询参数，可以在这里添加
                     // StickerQuery.buildParameters(builder);
                 }

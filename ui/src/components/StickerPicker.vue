@@ -186,8 +186,8 @@ const handleUploadFile = async () => {
           </Transition>
           <Transition v-if="!stickers || stickers.length === 0" appear name="fade">
             <VEmpty
-              message="你可以尝试刷新或者新建表情包"
-              title="当前没有表情包"
+              message="你可以尝试刷新或者新建表情"
+              title="当前没有表情"
               class="h-full flex flex-col items-center justify-center"
             >
               <template #actions>
@@ -197,7 +197,7 @@ const handleUploadFile = async () => {
                     <template #icon>
                       <IconAddCircle class="size-full" />
                     </template>
-                    新增表情包
+                    上传表情
                   </VButton>
                 </VSpace>
               </template>

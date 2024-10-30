@@ -84,7 +84,7 @@ public class StickerGroupEndpoint implements CustomEndpoint {
         defaultGroup.setMetadata(new Metadata());
         defaultGroup.getMetadata().setName(username + "-stickers");
         defaultGroup.setSpec(new StickerGroup.StickerGroupSpec());
-        defaultGroup.getSpec().setDisplayName(username + "'s Stickers");
+        defaultGroup.getSpec().setDisplayName("我的表情");
         defaultGroup.getSpec().setIsPublic(false);
         defaultGroup.getSpec().setIsDefault(true);
         defaultGroup.getSpec().setOwner(username);
