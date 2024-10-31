@@ -1,7 +1,8 @@
 package run.halo.sticker.endpoint;
 
+import static org.springdoc.core.fn.builders.apiresponse.Builder.responseBuilder;
+import static org.springdoc.webflux.core.fn.SpringdocRouteBuilder.route;
 import static org.springframework.web.reactive.function.server.RequestPredicates.contentType;
-import static org.springframework.web.reactive.function.server.RouterFunctions.route;
 
 import com.google.common.io.Files;
 import java.security.Principal;
@@ -33,6 +34,7 @@ import run.halo.app.core.extension.attachment.Attachment;
 import run.halo.app.core.extension.endpoint.CustomEndpoint;
 import run.halo.app.core.extension.service.AttachmentService;
 import run.halo.app.extension.GroupVersion;
+import run.halo.app.extension.ListResult;
 import run.halo.app.extension.Metadata;
 import run.halo.app.extension.ReactiveExtensionClient;
 import run.halo.app.plugin.ReactiveSettingFetcher;
@@ -58,16 +60,43 @@ public class StickerEndpoint implements CustomEndpoint {
 
     @Override
     public RouterFunction<ServerResponse> endpoint() {
+        final var tag = "sticker.api.halo.run/v1alpha1/Sticker";
         return route()
-            .GET("stickers", this::listStickersByGroup)
-            .POST("sticker/-/upload", contentType(MediaType.MULTIPART_FORM_DATA),
-                this::uploadUserSticker)
+            .GET("stickers", this::listStickersByGroup,
+                builder -> {
+                    builder.operationId("ListStickers")
+                        .description("List stickers by group.")
+                        .tag(tag)
+                        .response(responseBuilder().implementation(
+                            ListResult.generateGenericClass(Sticker.class))
+                        );
+                    // 如果有查询参数，可以在这里添加
+                    // StickerQuery.buildParameters(builder);
+                }
+            )
+            .POST("stickers/-/upload", contentType(MediaType.MULTIPART_FORM_DATA),
+                this::uploadUserSticker,
+                builder -> {
+                    builder.operationId("UploadSticker")
+                        .description("Upload a user sticker.")
+                        .tag(tag)
+                        .response(responseBuilder().implementation(Sticker.class));
+                }
+            )
+            .DELETE("stickers/{name}", this::deleteStickers,
+                builder -> {
+                    builder.operationId("DeleteSticker")
+                        .description("Delete a sticker.")
+                        .tag(tag)
+                        .response(responseBuilder().implementation(Void.class));
+                }
+            )
             .build();
     }
 
     @Override
     public GroupVersion groupVersion() {
-        return GroupVersion.parseAPIVersion("console.api.sticker.halo.run/v1alpha1");
+        return GroupVersion.parseAPIVersion("sticker.api.halo.run/v1alpha1");
     }
 
     private Mono<ServerResponse> listStickersByGroup(ServerRequest request) {
@@ -94,6 +123,11 @@ public class StickerEndpoint implements CustomEndpoint {
             .flatMap(sticker -> ServerResponse.ok().bodyValue(sticker));
     }
 
+    private Mono<ServerResponse> deleteStickers(ServerRequest request) {
+        log.info("Deleting sticker");
+        return ServerResponse.ok().build();
+    }
+
     private Mono<Sticker> saveSticker(UploadAttachmentDto dto) {
         var sticker = new Sticker();
         var metadata = new Metadata();
@@ -108,6 +142,7 @@ public class StickerEndpoint implements CustomEndpoint {
     }
 
     private Mono<StickerGroup> getOrCreateStickerGroup(String groupName) {
+        //todo find the default group
         String finalGroupName = SELF_USER.equals(groupName) ? UUID.randomUUID().toString() : groupName;
         return client.fetch(StickerGroup.class, finalGroupName)
                 .switchIfEmpty(getUserName().flatMap(userName -> createSelfStickerGroup(finalGroupName, userName)));
