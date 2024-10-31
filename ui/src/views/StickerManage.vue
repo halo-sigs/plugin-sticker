@@ -97,10 +97,9 @@ const handleDeleteInBatch = () => {
           return axiosInstance.delete(`/apis/storage.halo.run/v1alpha1/stickers/${sticker.metadata.name}`);
         });
         await Promise.all(promises);
+        refetch().catch(console.error);
       } catch (e) {
         console.error(e);
-      } finally {
-        pageRefetch();
       }
     },
   });
@@ -206,9 +205,6 @@ const handleCheckAll = (checkAll: boolean) => {
   }
 };
 
-const pageRefetch = async () => {
-  // refetch data
-};
 </script>
 
 <template>

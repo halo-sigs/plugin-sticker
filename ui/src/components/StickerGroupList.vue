@@ -84,7 +84,7 @@ const handleDelete = async (group: StickerGroup) => {
     onConfirm: async () => {
       try {
         await axiosInstance.delete(`/apis/storage.halo.run/v1alpha1/stickerGroups/${group.metadata.name}`);
-        refetch();
+        refetch().catch(console.error);
       } catch (e) {
         console.error("Failed to delete photo group", e);
       }
@@ -98,7 +98,7 @@ const handleSaveInBatch = async () => {
       if (group.spec) {
         group.spec.priority = index;
       }
-      return axiosInstance.put(`/apis/core.halo.run/v1alpha1/stickerGroups/${group.metadata.name}`, group);
+      return axiosInstance.put(`/apis/sticker.api.halo.run/v1alpha1/stickerGroups/${group.metadata.name}`, group);
     });
     if (promises) {
       await Promise.all(promises);
