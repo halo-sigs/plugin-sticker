@@ -40,12 +40,12 @@ const { data: groups, refetch } = useQuery<Array<StickerGroup>>({
     return data.items
       .map((group) => {
         if (group.spec) {
-          group.spec.sequence = group.spec.sequence || 0;
+          group.spec.priority = group.spec.priority || 0;
         }
         return group;
       })
       .sort((a, b) => {
-        return (a.spec?.sequence || 0) - (b.spec?.sequence || 0);
+        return (a.spec?.priority || 0) - (b.spec?.priority || 0);
       });
   },
   refetchInterval(data) {
