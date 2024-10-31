@@ -18,7 +18,7 @@ import { useRouteQuery } from "@vueuse/router";
 import type { Page, StickerGroup } from "@/types";
 import { useQuery } from "@tanstack/vue-query";
 import { axiosInstance } from "@halo-dev/api-client";
-import GroupEditingModal from "@/components/GroupEditingModal.vue";
+import GroupEditingModal from "@/components/GroupEditingModalUser.vue";
 
 const emit = defineEmits<{
   (event: "select", group?: string): void;
@@ -172,18 +172,18 @@ const handleSelectedClick = (group: StickerGroup) => {
       </Draggable>
     </Transition>
 
-    <template v-if="!loading" #footer>
-      <Transition appear name="fade">
-        <VButton
-          v-permission="['plugin:stickers:manage']"
-          block
-          type="secondary"
-          @click="handleOpenEditingModal(undefined)"
-        >
-          新增分组
-        </VButton>
-      </Transition>
-    </template>
+<!--    <template v-if="!loading" #footer>-->
+<!--      <Transition appear name="fade">-->
+<!--        <VButton-->
+<!--          v-permission="['plugin:stickers:manage']"-->
+<!--          block-->
+<!--          type="secondary"-->
+<!--          @click="handleOpenEditingModal(undefined)"-->
+<!--        >-->
+<!--          新增分组-->
+<!--        </VButton>-->
+<!--      </Transition>-->
+<!--    </template>-->
   </VCard>
 </template>
 

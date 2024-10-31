@@ -68,11 +68,11 @@ const handleCreateOrUpdateGroup = async () => {
     saving.value = true;
     if (isUpdateMode.value) {
       await axiosInstance.put(
-        `/apis/storage.halo.run/v1alpha1/stickerGroups/${formState.value.metadata.name}`,
+        `/apis/sticker.api.halo.run/v1alpha1/stickerGroups/${formState.value.metadata.name}`,
         formState.value,
       );
     } else {
-      await axiosInstance.post("/apis/storage.halo.run/v1alpha1/stickerGroups", formState.value);
+      await axiosInstance.post("/apis/sticker.api.halo.run/v1alpha1/stickerGroups", formState.value);
     }
     onVisibleChange(false);
   } catch (e) {
@@ -134,10 +134,10 @@ watch(Meta_Enter, (v) => {
       <div class="md:grid md:grid-cols-4 md:gap-6">
         <div class="md:col-span-1">
           <div class="sticky top-0">
-            <span class="text-base text-gray-900 font-medium"> 常规 </span>
+            <span class="text-base font-medium text-gray-900"> 常规 </span>
           </div>
         </div>
-        <div class="mt-5 md:col-span-3 md:mt-0 divide-y divide-gray-100">
+        <div class="mt-5 divide-y divide-gray-100 md:col-span-3 md:mt-0">
           <FormKit
             name="displayName"
             label="分组名称"
@@ -145,8 +145,6 @@ watch(Meta_Enter, (v) => {
             validation="required"
             help="可根据此名称查询表情"
           ></FormKit>
-          <FormKit name="owner" label="用户名" type="text" help="所属用户名"></FormKit>
-          <FormKit name="isPublic" label="公开" type="checkbox" help="公开表情包可以被所有用户看到"></FormKit>
         </div>
       </div>
     </FormKit>

@@ -63,7 +63,8 @@ public class StickerGroupEndpoint implements CustomEndpoint {
     private Mono<ServerResponse> listStickerGroups(ServerRequest request) {
         return getUserName()
             .flatMap(username -> client.list(StickerGroup.class,
-                    stickerGroup -> username.equals(stickerGroup.getSpec().getOwner()),
+                    stickerGroup -> username.equals(stickerGroup.getSpec().getOwner())
+                        || stickerGroup.getSpec().getIsPublic(),
                     null)
                 .collectList()
                 .flatMap(list -> {

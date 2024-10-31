@@ -26,7 +26,7 @@ import {
   VSpace,
   VTabbar,
 } from "@halo-dev/components";
-import { onMounted, onUnmounted, ref, watch } from "vue";
+import {computed, onMounted, onUnmounted, ref, watch} from "vue";
 import { useQuery, useQueryClient } from "@tanstack/vue-query";
 import LazyImage from "@/components/LazyImage.vue";
 import { axiosInstance } from "@halo-dev/api-client";
@@ -187,7 +187,9 @@ const handleUploadFile = async () => {
   }
 };
 
-const isDefaultGroup = () => groups.find(activeGroup.value).spec.isDefault;
+const showUploadButton = computed(() => {
+  return groups.value?.find(group => group.metadata.name === activeGroup.value)?.spec?.isDefault ?? false;
+});
 </script>
 
 <template>
@@ -221,8 +223,8 @@ const isDefaultGroup = () => groups.find(activeGroup.value).spec.isDefault;
             </VEmpty>
           </Transition>
           <Transition v-else appear name="fade">
-            <div v-if="isDefaultGroup" class="grid grid-cols-5 gap-2">
-              <div class="flex items-center justify-center">
+            <div class="grid grid-cols-5 gap-2">
+              <div v-if="showUploadButton" class="flex items-center justify-center">
                 <div class="group relative w-full cursor-pointer bg-white" @click="open">
                   <div class="flex flex-col justify-center overflow-hidden p-2 hover:bg-gray-100">
                     <div class="aspect-w-1 aspect-h-1 w-full flex items-center justify-center">
