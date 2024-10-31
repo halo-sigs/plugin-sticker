@@ -27,11 +27,13 @@ import {
   VTabbar,
 } from "@halo-dev/components";
 import { onMounted, onUnmounted, ref, watch } from "vue";
-import { useQuery } from "@tanstack/vue-query";
+import { useQuery, useQueryClient } from "@tanstack/vue-query";
 import LazyImage from "@/components/LazyImage.vue";
 import { axiosInstance } from "@halo-dev/api-client";
 import type { Page, Sticker, StickerGroup } from "@/types";
 import { useFileDialog } from "@vueuse/core";
+
+const queryClient = useQueryClient();
 
 const props = defineProps<{
   editor: Editor;
@@ -166,31 +168,33 @@ const handleUploadFile = async () => {
 
   uploadLoading.value = true;
 
-  const uploadUrl = new URL("/apis/console.api.sticker.halo.run/v1alpha1/sticker/-/upload", window.location.origin);
-  uploadUrl.searchParams.append("sticker-group", "-");
+  const uploadUrl = new URL("/apis/sticker.api.halo.run/v1alpha1/stickers/-/upload", window.location.origin);
+  uploadUrl.searchParams.append("sticker-group", activeGroup.value || "-");
 
   try {
     console.log("uploadUrl", uploadUrl);
     const response = await fetch(uploadUrl, { method: "POST", body: formData });
 
     if (!response.ok) {
-      Toast.error("File upload failed");
+      Toast.error("上传失败");
     }
-
-    Toast.success("File uploaded successfully");
+    Toast.success("上传成功");
+    refetchStickers();
   } catch (error) {
-    Toast.error("File upload failed");
+    Toast.error("上传失败");
   } finally {
     uploadLoading.value = false;
   }
 };
+
+const isDefaultGroup = () => groups.find(activeGroup.value).spec.isDefault;
 </script>
 
 <template>
   <div class="sticker-picker h-[500px] w-[540px] bg-white shadow-xl">
     <VCard>
       <button class="absolute right-2 top-2 z-50 rounded-full p-1 hover:bg-gray-100" @click="closePicker">
-        <IconClose class="h-4 w-4 text-gray-500"/>
+        <IconClose class="h-4 w-4 text-gray-500" />
       </button>
       <div class="h-[500px] flex flex-col items-center justify-center">
         <div class="grow">
@@ -217,7 +221,18 @@ const handleUploadFile = async () => {
             </VEmpty>
           </Transition>
           <Transition v-else appear name="fade">
-            <div class="grid grid-cols-5 gap-2">
+            <div v-if="isDefaultGroup" class="grid grid-cols-5 gap-2">
+              <div class="flex items-center justify-center">
+                <div class="group relative w-full cursor-pointer bg-white" @click="open">
+                  <div class="flex flex-col justify-center overflow-hidden p-2 hover:bg-gray-100">
+                    <div class="aspect-w-1 aspect-h-1 w-full flex items-center justify-center">
+                      <IconAddCircle class="h-10 w-10 text-gray-400" />
+                    </div>
+                    <p class="my1 truncate text-center text-sm text-gray-700">上传表情</p>
+                  </div>
+                </div>
+              </div>
+
               <div v-for="sticker in stickers" :key="sticker.metadata.name" class="flex items-center justify-center">
                 <div class="group relative w-full bg-white" @click="handleClickSticker(sticker)">
                   <div class="flex flex-col cursor-pointer justify-center overflow-hidden p-2 hover:bg-gray-100">
