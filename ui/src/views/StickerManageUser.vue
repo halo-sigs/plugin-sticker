@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { computed, ref } from "vue";
+import {computed, ref, watch} from "vue";
 import {
   VButton,
   VLoading,
@@ -71,7 +71,6 @@ const handleUploadFile = async () => {
   uploadUrl.searchParams.append("sticker-group", selectedGroup.value ?? "-");
 
   try {
-    console.log("uploadUrl", uploadUrl);
     const response = await fetch(uploadUrl, { method: "POST", body: formData });
 
     if (!response.ok) {

@@ -100,7 +100,6 @@ const StickerExtension = Node.create({
           title: "表情包",
           keywords: ["emoji", "sticker"],
           command: ({ editor, range }: { editor: CoreEditor; range: Range }) => {
-            console.log("getCommandMenuItems");
             editor.chain().focus().deleteRange(range).run();
             openStickerPicker(editor);
           },

@@ -26,14 +26,13 @@ import {
   VSpace,
   VTabbar,
 } from "@halo-dev/components";
-import {computed, onMounted, onUnmounted, ref, watch} from "vue";
-import { useQuery, useQueryClient } from "@tanstack/vue-query";
+import { computed, ref, watch } from "vue";
+import { useQuery } from "@tanstack/vue-query";
 import LazyImage from "@/components/LazyImage.vue";
 import { axiosInstance } from "@halo-dev/api-client";
 import type { Page, Sticker, StickerGroup } from "@/types";
 import { useFileDialog } from "@vueuse/core";
-
-const queryClient = useQueryClient();
+import {error} from "@formkit/core";
 
 const props = defineProps<{
   editor: Editor;
@@ -51,8 +50,6 @@ const handleClickSticker = (sticker: Sticker) => {
   if (sticker.spec && sticker.spec.url) {
     props.editor.commands.insertSticker(sticker.spec.url);
     closePicker();
-  } else {
-    console.error("Sticker URL is missing");
   }
 };
 
@@ -95,10 +92,6 @@ watch(activeGroup, () => {
   refetchStickers();
 });
 
-watch(stickers, () => {
-  console.log("stickers loaded", stickers);
-});
-
 const { data: groups } = useQuery<Array<StickerGroup>>({
   queryKey: ["stickerGroups"],
   queryFn: async () => {
@@ -136,7 +129,6 @@ const { data: groups } = useQuery<Array<StickerGroup>>({
 
 const handleSelectedClick = (group: StickerGroup) => {
   activeGroup.value = group.metadata.name;
-  console.log(activeGroup.value);
 };
 
 const { open, onChange } = useFileDialog({
@@ -172,12 +164,7 @@ const handleUploadFile = async () => {
   uploadUrl.searchParams.append("sticker-group", activeGroup.value || "-");
 
   try {
-    console.log("uploadUrl", uploadUrl);
-    const response = await fetch(uploadUrl, { method: "POST", body: formData });
-
-    if (!response.ok) {
-      Toast.error("上传失败");
-    }
+    await axiosInstance.post(uploadUrl.toString(), formData);
     Toast.success("上传成功");
     refetchStickers();
   } catch (error) {
@@ -188,7 +175,7 @@ const handleUploadFile = async () => {
 };
 
 const showUploadButton = computed(() => {
-  return groups.value?.find(group => group.metadata.name === activeGroup.value)?.spec?.isDefault ?? false;
+  return groups.value?.find((group) => group.metadata.name === activeGroup.value)?.spec?.isDefault ?? false;
 });
 </script>
 

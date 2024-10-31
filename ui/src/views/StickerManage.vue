@@ -1,20 +1,20 @@
 <script lang="ts" setup>
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import {
-  VButton,
-  VLoading,
-  Toast,
-  VPageHeader,
+  Dialog,
+  IconAddCircle,
   IconCheckboxFill,
   IconMotionLine,
-  IconAddCircle,
+  Toast,
+  VButton,
   VCard,
-  VSpace,
   VDropdown,
   VDropdownItem,
   VEmpty,
+  VLoading,
+  VPageHeader,
   VPagination,
-  Dialog,
+  VSpace,
 } from "@halo-dev/components";
 import LazyImage from "@/components/LazyImage.vue";
 import StickerGroupList from "@/components/StickerGroupList.vue";
@@ -58,7 +58,7 @@ onChange((files) => {
 
 const handleUploadFile = async () => {
   if (!selectedFile.value) {
-    Toast.error("No file selected");
+    Toast.error("文件不存在");
     return;
   }
 
@@ -71,16 +71,11 @@ const handleUploadFile = async () => {
   uploadUrl.searchParams.append("sticker-group", selectedGroup.value ?? "-");
 
   try {
-    console.log("uploadUrl", uploadUrl);
-    const response = await fetch(uploadUrl, { method: "POST", body: formData });
-
-    if (!response.ok) {
-      Toast.error("File upload failed");
-    }
+    await axiosInstance.post(uploadUrl.toString(), formData);
     queryClient.resetQueries([page, size, keyword, selectedGroup]).catch(console.error);
-    Toast.success("File uploaded successfully");
+    Toast.success("文件上传成功");
   } catch (error) {
-    Toast.error("File upload failed");
+    Toast.error("文件上传失败");
   } finally {
     uploadLoading.value = false;
   }
@@ -204,7 +199,6 @@ const handleCheckAll = (checkAll: boolean) => {
     selectedStickers.value.clear();
   }
 };
-
 </script>
 
 <template>
